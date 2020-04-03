@@ -1,0 +1,175 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+	<meta name="description" content="">
+	<title></title>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
+	<link href="css/custom.css?v=3" rel="stylesheet" />
+	<link href="css/font/css/all.css" rel="stylesheet" />
+</head>
+<body>
+	<nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+		<div class="mx-auto order-0">
+			<a class="navbar-brand mx-auto" href="index.html">RadicalSAM.org</a>
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavItems" aria-controls="navbarNavItems" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
+		</div>
+
+		<div class="navbar-collapse collapse w-100 order-3" id="navbarNavItems">
+			<ul class="navbar-nav ml-auto">
+				<li class="nav-item"><a class="nav-link active" href="explore.html">Explore</a></li>
+				<li class="nav-item"><a class="nav-link" href="search.html">Search</a></li>
+				<li class="nav-item"><a class="nav-link" href="roadmap.html">Roadmap</a></li>
+                <li class="nav-item"><a class="nav-link" href="submit.html">Submit</a></li>
+				<li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+				<li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+			</ul>
+		</div>
+	</nav>
+
+	<main role="main">
+		<div class="container">
+			<nav aria-label="breadcrumb" id="exploreBreadcrumb" style="display: none;">
+			</nav>
+			<div class="container">
+				<h1 class="text-center" id="familyTitle"></h1>
+				<div>
+					<div id="clusterNums" class="w-100 container-cluster-num"></div>
+					<div>
+						<!--<div id="derivationContainerSide" class="w-25 float-left">
+							<b>DERIVATION:</b> IPR007197+IPR006638 // AS##,
+							edge-edited<span data-toggle="tooltip" title="Edge editing is done to ensure that clusters with very low connectivity to other parts of the network are isolated." style="font-size: 0.8em;"><sup><i class="fas fa-question-circle"></i></sup></span>
+							and isolated // AS##,
+							edge-edited<span data-toggle="tooltip" title="Edge editing is done to ensure that clusters with very low connectivity to other parts of the network are isolated." style="font-size: 0.8em;"><sup><i class="fas fa-question-circle"></i></sup></span>
+							and isolated // HMM developed from isofunctional cluster
+						</div>-->
+						<div class="border border-dark rounded p-2 mb-2 float-right w-100">
+							<img src="img/blank.png" class="img-fluid" id="clusterImg" />
+						</div>
+					</div>
+					<div style="clear:both"></div>
+					<div></div>
+						<div class="float-right"><i class="fas fa-download" data-toggle="tooltip" title="Download high-resolution" id="downloadClusterImage"></i> <!--<button class="btn btn-primary btn-sm" id="downloadClusterImage">Download high-resolution</button>--></div>
+						<div class="data-available float-left" id="dataAvailable" style="display: none">
+							<button class="btn btn-sm btn-outline-secondary disabled" type="button" id="dataAvailableSp">Swiss-Prot</button>
+							<button class="btn btn-sm btn-outline-secondary disabled" type="button" id="dataAvailableKegg">KEGG</button>
+							<button class="btn btn-sm btn-outline-secondary disabled" type="button" id="dataAvailableTigr">TIGR</button>
+							<button class="btn btn-sm btn-outline-secondary disabled" type="button" id="dataAvailablePubs">Pubs</button>
+							<button class="btn btn-sm btn-outline-secondary disabled" type="button" id="dataAvailableAnno">Anno</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="container">
+			<p class="text-center" id="TESTFamilyDesc">
+			</p>
+
+			<div id="displayFeatures">
+				<div id="summaryInfoContainer">
+					<!--<div id="derivationContainerBottom">
+						<b>DERIVATION:</b> IPR007197+IPR006638 // AS##,
+						edge-edited<span data-toggle="tooltip" title="Edge editing is done to ensure that clusters with very low connectivity to other parts of the network are isolated." style="font-size: 0.8em;"><sup><i class="fas fa-question-circle"></i></sup></span>
+						and isolated // AS##,
+						edge-edited<span data-toggle="tooltip" title="Edge editing is done to ensure that clusters with very low connectivity to other parts of the network are isolated." style="font-size: 0.8em;"><sup><i class="fas fa-question-circle"></i></sup></span>
+						and isolated // HMM developed from isofunctional cluster
+					</div>-->
+					<div id="spFunctionContainer" style="display: none">
+						<h3>Swiss-Prot Functions</h3>
+						<div id="spFunctions"></div>
+					</div>
+					<div id="clusterSizeContainer" style="display: none">
+						<h3>Cluster Size</h3>
+						<div id="clusterSize"></div>
+					</div>
+				</div>
+				<div id="lengthHistogramContainer" style="display: none">
+					<h3>Length Histogram for All Sequences (UniProt IDs)</h3>
+					<div id="fullLengthHistogram"></div>
+					<div class=""><button class="btn btn-outline-primary btn-sm" id="downloadFullLenHistoImage">Download high-resolution</button></div>
+					<h3>Length-Filtered Histogram for Node Sequences (UniRef50 IDs) &mdash; Used for MSA, WebLogo, and HMM</h3>
+					<div id="filteredLengthHistogram"></div>
+					<div class=""><button class="btn btn-outline-primary btn-sm" id="downloadFiltLenHistoImage">Download high-resolution</button></div>
+				</div>
+				<div id="weblogoContainer" style="display: none">
+					<h3>WebLogo</h3>
+					<div id="weblogo"></div>
+					<div class=""><button class="btn btn-outline-primary btn-sm" id="downloadWeblogoImage">Download high-resolution</button></div>
+				</div>
+			</div>
+
+			<div id="downloadContainer" style="display: none">
+				<h3>Downloads</h3>
+				<div id="downloads"></div>
+			</div>
+
+			<div id="metadataContainer">
+				<div id="otherAnnoContainer" style="display: none">
+					<h3>Public Annotation Databases</h3>
+					<div id="keggListContainer" style="display: none">
+						<h4>KEGG</h4>
+						<button id="keggExpand" type="button" class="btn btn-secondary">Expand list</button>
+						<div id="keggList"></div>
+					</div>
+				</div>
+
+				<div id="commAnno">
+					<h3>Community Annotations</h3>
+					<div id="noCommAnno">
+                        <p>
+						No community annotations are available for this cluster.  
+                        </p>
+                        <p>
+                        We are accepting <a href="submit.html" id="submitAnnoLink">submissions for community-driven annotations</a>.
+                        </p>
+					</div>
+					<div id="commAnnoTable"></div>
+				</div>
+
+				<div id="publicationsContainer">
+					<h3>Publications</h3>
+					<div id="publications">
+						No publications are available for this cluster.  Please contact us to contribute a
+						citation to this page.
+					</div>
+				</div>
+
+				<div id="familyListContainer">
+					<div id="tigrfamContainer">
+						<h3>TIGR Families</h3>
+						<div id="tigrFams"></div>
+					</div>
+				</div>
+			</div>
+		</div> <!-- /container -->
+
+	</main>
+
+	<footer class="container">
+		<hr class="w-25" />
+		<div class="text-center">
+			radicalSAM.org <span class="pl-4"></span> Gerlt, Mitchell, Firouzbakht, and Oberg, 2020 <span class="pl-4"></span> <a href="https://efi.igb.illinois.edu">EFI</a> at <a href="https://igb.illinois.edu">Institute for Genomic Biology, University of Illinois</a>
+		</div>
+	</footer>
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js" crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+	<script src="data/data.js?v=15"></script>
+	<script src="js/app.js?v=15"></script>
+	<script src="js/imageMapResizer.min.js"></script>
+	<script src="js/jquery.maphilight.min.js"></script>
+	<script>
+		$(document).ready(function () {
+			var requestId = getPageClusterId();
+			if (!requestId)
+				requestId = "fullnetwork";
+			$(this).initPage(requestId);
+			$('[data-toggle="tooltip"]').tooltip();
+		});
+	</script>
+</body>
+</html>

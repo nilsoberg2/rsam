@@ -1,0 +1,406 @@
+
+var getPageClusterId = function () {
+	var paramStr = window.location.search.substring(1);
+	var params = paramStr.split("&");
+	var reqId = "";
+	for (var i = 0; i < params.length; i++) {
+		var parts = params[i].split("=");
+		if (parts[0] === "id")
+			reqId = parts[1];
+	}
+	if (reqId && DATA.networks[reqId])
+		return reqId;
+	else
+		return "";
+};
+
+
+$(document).ready(function () {
+
+	var getUrlFn = function (id) {
+		return "?id=" + id;
+	};
+	var goToUrlFn = function (id) {
+		window.location = getUrlFn(id);
+	};
+	var setPageHeaders = function (network, isLeafPage) {
+		var pageTitle = typeof network.title !== "undefined" ? network.title : "title";
+		document.title = pageTitle;
+		$("#familyTitle").text(pageTitle);
+		if (typeof network.TESTtext !== "undefined")
+			$("#TESTFamilyDesc").text(network.TESTtext);
+
+		var headerText = isLeafPage ? " Data" : " Subgroups and Clusters";
+		var name = typeof network.name !== "undefined" ? network.name : "family";
+		$("#clusterTableContainer").append("<h2>" + name + headerText + "</h2>");
+	};
+	var getParentId = function (childId) {
+		var parts = childId.split("-");
+		var parentId = "";
+		if (parts.length > 2)
+			parentId = parts.slice(0, parts.length-1).join("-");
+		return parentId;
+	};
+	var getSizeStruct = function (networkId) {
+		//TODO: validate
+		return DATA.sizes[networkId];
+	};
+	var addClusterSize = function (networkId) {
+		var size = getSizeStruct(networkId);
+		if (typeof size === "undefined")
+			return false;
+		$("#clusterSize").append('UniProt: ' + parseInt(size.uniprot).toLocaleString() + '<br>UniRef90: ' + parseInt(size.uniref90).toLocaleString() + '<br>UniRef50: ' + parseInt(size.uniref50).toLocaleString());
+		$("#clusterSizeContainer").show();
+	};
+	var addSwissProtFunctions = function (networkId) {
+		var list = DATA.swissprot[networkId];
+		if (typeof list === "undefined")
+			return false;
+		var ecodes = DATA.enzymecode;
+		if (typeof ecodes === "undefined")
+			ecodes = {};
+		var ul = $("<ul></ul>");
+		for (var i = 0; i < list.length; i++) {
+			var parts = list[i].split("||");
+			var desc = parts[0];
+			if (parts.length > 0 && typeof parts[1] !== "undefined") {
+				var code = parts[1];
+				if (code) {
+					var codeDesc = ecodes[code];
+					var linkCode = '<a href="https://enzyme.expasy.org/EC/' + code + '">' + code + '</a>';
+					if (typeof codeDesc !== "undefined")
+						codeDesc = '<span data-toggle="tooltip" title="' + codeDesc + '">' + linkCode + '</span>';
+					else
+						codeDesc = linkCode;
+					desc += " (" + codeDesc + ")";
+				}
+			}
+			ul.append("<li>" + desc + "</li>");
+		}
+		$("#spFunctions").append(ul);
+		$("#spFunctionContainer").show();
+		$("#spFunctions ul li span").css({ "font-style": "italic" });
+		$("#dataAvailableSp").enableDataAvailableButton();
+	};
+	var addDisplayFeatures = function (networkId, network) {
+		var feat = network.display;
+		if (typeof feat === "undefined")
+			return false;
+
+		for (var i = 0; i < feat.length; i++) {
+			if (feat[i] == "weblogo") {
+				//TESTING/DEBUGGING:
+				//var img = $('<img src="data/weblogo.png" alt="WebLogo for ' + networkId + '" style="width: 50%">');
+				var img = $('<img src="data/' + networkId + '/weblogo.png" alt="WebLogo for ' + networkId + '" style="width: 50%">');
+				$("#weblogo").append(img);
+				$("#downloadWeblogoImage").click(function (e) { e.preventDefault(); window.location.href = "data/" + networkId + "/weblogo.png"; });
+				$("#weblogoContainer").show();
+			} else if (feat[i] == "length_histogram") {
+				//TESTING/DEBUGGING:
+				//var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + networkId + '" style="width: 50%">');
+				var img = $('<img src="data/' + networkId + '/length_histogram_sm.png" alt="Length histogram for ' + networkId + '" style="width: 50%">');
+				$("#fullLengthHistogram").append(img);
+				$("#downloadFullLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = "data/" + networkId + "/length_histogram_lg.png"; });
+				//TESTING/DEBUGGING:
+				//var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + networkId + '" style="width: 50%">');
+				var img = $('<img src="data/' + networkId + '/length_histogram_filtered_sm.png" alt="Length histogram for ' + networkId + '" style="width: 50%">');
+				$("#filteredLengthHistogram").append(img);
+				$("#downloadFiltLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = "data/" + networkId + "/length_histogram_filtered_lg.png"; });
+				$("#lengthHistogramContainer").show();
+			}
+		}
+	};
+	var getDownloadButton = function (networkId, fileType) {
+		return '<a href="data/' + networkId + '/' + fileType + '"><button class="btn btn-primary btn-sm">Download</button></a>';
+	};
+	var getDownloadSize = function (networkId, fileType) {
+		return '&lt; 1 MB';
+	};
+	var addDownloadFeatures = function (networkId, network) {
+		var feat = network.downloads;
+		if (typeof feat === "undefined" || feat.length == 0)
+			return false;
+
+		var table = $('<table class="table table-sm text-center w-auto"></table>');
+		table.append('<thead><tr><th>Download</th><th>File Type</th><th>Size</th></thead>');
+		var body = $('<tbody>');
+		table.append(body);
+
+		for (var i = 0; i < feat.length; i++) {
+			//"downloads": ["weblogo", "msa", "hmm", "id_fasta", "misc"]
+			if (feat[i] == "gnn") {
+			} else if (feat[i] == "weblogo") {
+				body.append('<tr><td>' + getDownloadButton(networkId, feat[i] + ".png") + '</td><td>WebLogo for Length-Filtered Node Sequences</td><td>' + getDownloadSize(networkId, feat[i]) + '</td></tr>');
+			} else if (feat[i] == "msa") {
+				body.append('<tr><td>' + getDownloadButton(networkId, feat[i] + ".afa") + '</td><td>MSA for Length-Filtered Node Sequences</td><td>' + getDownloadSize(networkId, feat[i]) + '</td></tr>');
+			} else if (feat[i] == "hmm") {
+				body.append('<tr><td>' + getDownloadButton(networkId, feat[i] + ".hmm") + '</td><td>HMM for Length-Filtered Node Sequences</td><td>' + getDownloadSize(networkId, feat[i]) + '</td></tr>');
+			} else if (feat[i] == "id_fasta") {
+				var t = [
+					{ "key": "uniprot.txt", "desc": "UniProt ID list" },
+					{ "key": "uniref90.txt", "desc": "UniRef90 ID list" },
+					{ "key": "uniref50.txt", "desc": "UniRef50 ID list" },
+					{ "key": "uniprot.fasta", "desc": "UniProt FASTA file" },
+					{ "key": "uniref90.fasta", "desc": "UniRef90 FASTA file" },
+					{ "key": "uniref50.fasta", "desc": "UniRef50 FASTA file" }
+				];
+
+				table.append('<tbody><tr><td colspan="3"><b>ID Lists and FASTA Files</b></td></tr></tbody>');
+				body = $('<tbody>');
+				table.append(body);
+
+				for (var k = 0; k < t.length; k++) {
+					body.append('<tr><td>' + getDownloadButton(networkId, t[k].key) + '</td><td>' + t[k].desc + '</td><td>' + getDownloadSize(networkId, t[k].key) + '</td></tr>');
+				}
+			} else if (feat[i] == "misc") {
+				var t = [
+					//{ "key": "cluster_size", "desc": "Cluster sizes" },
+					{ "key": "swissprot.txt", "desc": "SwissProt annotations within cluster" },
+					//{ "key": "sp_singletons", "desc": "SwissProt annotations by singletons" }
+				];
+
+				table.append('<tbody><tr><td colspan="3"><b>Miscellaneous Files</b></td></tr></tbody>');
+				body = $('<tbody>');
+				table.append(body);
+
+				for (var k = 0; k < t.length; k++) {
+					body.append('<tr><td>' + getDownloadButton(networkId, t[k].key) + '</td><td>' + t[k].desc + '</td><td>' + getDownloadSize(networkId, t[k].key) + '</td></tr>');
+				}
+			}
+		}
+
+		$("#downloads").append(table);
+		$("#downloadContainer").show();
+	};
+	var addTigrFamilies = function (network) {
+		var tigr = network.tigr_families;
+		if (typeof tigr === "undefined" || tigr.length == 0)
+			return;
+		var table = $('<table class="table table-sm w-auto"></table>');
+		var head = $('<thead><tr><th>TIGR ID</th><th>TIGR Description</th></tr></thead>');
+		var body = $('<tbody></tbody>');
+		for (var i = 0; i < tigr.length; i++) {
+			body.append('<tr><td>' + tigr[i].id + '</td><td>' + tigr[i].description + '</td></tr>');
+		}
+		table.append(head).append(body);
+		if (tigr.length > 0) {
+			$("#tigrFams").append(table);
+			$("#tigrFamContainer").show();
+			$("#dataAvailableTigr").enableDataAvailableButton();
+		}
+	};
+	//TODO: make this more consistent with Tigr
+	var checkForKegg = function (networkId) {
+		var kegg = DATA.kegg[networkId];
+		if (typeof kegg === "undefined" || kegg.length == 0)
+			return;
+		$("#keggList").append("<div>This cluster contains " + parseInt(kegg.length).toLocaleString() + " KEGG-annotated sequences.</div>");
+		$("#keggExpand").click(function () {
+			if (typeof $(this).data("state") === "undefined") {
+				var ul = $("<ul id=\"keggListList\"></ul>");
+				for (var i = 0; i < kegg.length; i++) {
+					ul.append('<li><a href="https://www.genome.jp/dbget-bin/www_bget?' + kegg[i] + '">' + kegg[i] + '</a></li>');
+				}
+				$("#keggList").append(ul);
+				$(this).data("state", "+");
+			} else if ($(this).data("state") === "-") {
+				$("#keggListList").show();
+				$(this).data("state", "+");
+			} else if ($(this).data("state") === "+") {
+				$("#keggListList").hide();
+				$(this).data("state", "-");
+			}
+		});
+		$("#keggListContainer").show();
+		$("#otherAnnoContainer").show();
+		$("#dataAvailableKegg").enableDataAvailableButton();
+	};
+	var addDerivation = function (networkId) {
+
+	};
+
+
+	$.fn.extend({
+		initPage: function (networkId) {
+			var network = DATA.networks[networkId];
+			if (typeof network === "undefined")
+				return false;
+			var hasSubgroups = typeof network.subgroups !== "undefined" && network.subgroups.length > 0;
+			var hasRegions = typeof network.regions !== "undefined" && network.regions.length > 0;
+			var isLeaf = !hasSubgroups && !hasRegions;
+
+			setPageHeaders(network, isLeaf);
+			$("#clusterImg").setClusterImage(networkId, network);
+			$("#exploreBreadcrumb").addBreadcrumb(networkId, network);
+			addTigrFamilies(network);
+			checkForKegg(networkId);
+
+			var dataDiv = $("#displayFeatures");
+
+			// Terminal endpoint
+			if (isLeaf) {
+				addClusterSize(networkId);
+				addSwissProtFunctions(networkId);
+				addDisplayFeatures(networkId, network);
+				addDownloadFeatures(networkId, network);
+				$("#dataAvailable").show();
+                $("#submitAnnoLink").attr("href", $("#submitAnnoLink").attr("href") + "?id=" + networkId);
+
+			// Still more stuff to zoom in to
+			} else {
+				$("#clusterNums").addClusterNumbers(network);
+				var clusterTable = $('<div id="clusterTable"></div>');
+				clusterTable.addSubgroupTable(network);
+				dataDiv.append(clusterTable);
+
+				$(".row-clickable tr")
+					.mouseover(function () {
+						$("#cluster-region-" + $(this).data("node-id")).mouseover();
+					})
+					.mouseout(function () {
+						$("#cluster-region-" + $(this).data("node-id")).mouseout();
+					})
+					.click(function () {
+						var id = $(this).data("node-id");
+						goToUrlFn(id);
+						//alert($(this).data("node-id"));
+					});
+			}
+		},
+		enableDataAvailableButton: function () {
+			$(this).removeClass("btn-outline-secondary").addClass("btn-secondary").removeClass("disabled");
+		},
+		setClusterImage: function (networkId, network) {
+			var fileName = network.image;
+			var img = $(this);
+			if (Array.isArray(fileName))
+				;//TODO:
+			else
+				img
+					.attr("src", "data/" + networkId + "/" + fileName + "_sm.png")
+					.on("load", function () { img.addClusterHotspots(network); });
+			$("#downloadClusterImage").click(function (e) {
+				e.preventDefault();
+				window.location.href = "data/" + networkId + "/" + fileName + "_lg.png";
+			});
+		},
+		addBreadcrumb: function (networkId, network) {
+			var parts = networkId.split("-");
+			if (parts.length > 1) {
+				var nav = $(this);
+				var ol = $('<ol class="breadcrumb"><li class="breadcrumb-item" aria-current="page"><a href="?">Explore</a></li>');
+				for (var i = 1; i < parts.length; i++) {
+					var item = "";
+					if (i == parts.length - 1) {
+						item = '<li class="breadcrumb-item active" aria-current="page">' + network.name + '</li>';
+					} else {
+						var parentId = parts.slice(0, i + 1).join("-");
+						item = '<li class="breadcrumb-item"><a href="?id=' + parentId + '">';
+						var parentNet = DATA.networks[parentId];
+						if (typeof parentNet !== "undefined")
+							item += parentNet.name;
+						else
+							item += parts[i];
+						item += '</li>';
+					}
+					ol.append($(item));
+				}
+				nav.append(ol);
+				nav.show();
+			}
+		},
+		addClusterNumbers: function (network) {
+			var parent = $(this);
+			var pw = parent.width();
+			$.each(network.regions, function (i, data) {
+				var obj = $('<span id="cluster-num-text-' + data.id + '">' + data.name + "</span>");
+				parent.append(obj);
+				// Calculate the width of the text to properly align text for small clusters
+				var offset = (obj.width() / pw * 100 / 2);
+				var pos = data.coords[0] + (data.coords[2] - data.coords[0]) / 2 - offset;
+				obj.css({
+					position: "absolute",
+					top: "0px",
+					left: pos + "%"
+				});
+			});
+		},
+		// This should be called on the image
+		addClusterHotspots: function (network) {
+			var img = $(this);
+			var parent = img.parent();
+			var w = img.width() / 100;
+			var h = img.height() / 100;
+			var imgmap = $('<map name="clusterHotspotMap" id="clusterHotspotMap"></map>');
+			$.each(network.regions, function (i, data) {
+				var coords = [data.coords[0] * w, data.coords[1] * h, data.coords[2] * w, data.coords[3] * h];
+				var coordStr = coords.join(",");
+				var shape = $('<area shape="rect" coords="' + coordStr + '" id="cluster-region-' + data.id + '" href="' + getUrlFn(data.id) + '">');
+				shape
+					.click(function () {
+						goToUrlFn(data.id);
+					})
+					.mouseover(function () {
+						$("#cluster-num-text-" + data.id).css({ color: "red", "text-decoration": "underline" });
+					}).mouseout(function () {
+						$("#cluster-num-text-" + data.id).css({ color: "inherit", "text-decoration": "inherit" });
+					});
+				imgmap.append(shape);
+			});
+			parent.append(imgmap);
+			img.attr("usemap", "#clusterHotspotMap");
+			img.maphilight();
+			//imgmap.imageMapResize();
+		},
+		addSubgroupTable: function (network) {
+			var div = $(this);
+			var table = $('<table class="table table-hover w-auto"></table>');
+
+			// If there are cleanly-defined sub-clusters, then the 'regions' property will be present.
+			if (typeof network.regions !== "undefined") {
+                var headHtml = '<thead><tr class="text-center"><th>Cluster</th><th>ID Cluster Number</th>';
+                if (network.image != "fullnetwork") //TODO: HACK
+                    headHtml += '<th>SFLD Subgroup</th>';
+                headHtml += '<th>UniProt</th><th>UniRef90</th><th>UniRef50</th></tr></thead>';
+				var head = table.append(headHtml);
+				var body = table.append('<tbody class="row-clickable text-center"></tbody>');
+				$.each(network.regions, function (i, data) {
+					var row = $('<tr data-node-id="' + data.id + '"></tr>');
+					var size = getSizeStruct(data.id);
+                    var sfldDesc = "";
+                    if (typeof DATA.sfld_map !== "undefined" && typeof DATA.sfld_map[data.id] !== "undefined") {
+                        for (var i = 0; i < DATA.sfld_map[data.id].length; i++) {
+                            var sfldId = DATA.sfld_map[data.id][i];
+                            if (sfldDesc.length)
+                                sfldDesc += '; ';
+                            sfldDesc += "<span style=\"color: " + DATA.sfld_desc[sfldId].color + ";\">" + DATA.sfld_desc[sfldId].desc + " (" + sfldId + ")</span>";
+                        }
+                    }
+                    var rowHtml = "<td>" + data.name + "</td><td>" + data.number + "</td>";
+                    if (network.image != "fullnetwork") //TODO: HACK
+                        rowHtml += "<td>" + sfldDesc + "</td>";
+                    rowHtml += "<td>" + parseInt(size.uniprot).toLocaleString() + "</td><td>" + parseInt(size.uniref90).toLocaleString() + "</td><td>" + parseInt(size.uniref50).toLocaleString() + "</td>";
+					row.append(rowHtml);
+					body.append(row);
+				});
+			} else if (typeof network.subgroups !== "undefined") {
+				var head = table.append('<thead><tr><th>Cluster</th><th>SFLD Number</th><th>Subgroup</th></tr></thead>');
+				var body = table.append('<tbody class="row-clickable text-center"></tbody>');
+				$.each(network.subgroups, function (i, data) {
+					var descColor = typeof data.color !== "undefined" ? ' style="color: '+data.color+'; font-weight: bold"' : "";
+					var descCol = "<td" + descColor + ">" + data.desc + "</td>";
+					var row = $('<tr data-node-id="' + data.id + '"></tr>');
+					row.append("<td>" + data.name + "</td><td>" + data.sfld + "</td>" + descCol);
+					body.append(row);
+				});
+			}
+			div.append(table);
+		},
+	});
+
+	//Eventually do this:
+	//$.getJSON("img/data.json", function (data) {
+	//	alert(data.data.fullnetwork.regions[0].name);
+	//});
+});
+

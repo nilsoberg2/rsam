@@ -1,0 +1,113 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <title>Search</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link href="css/custom.css?v=3" rel="stylesheet">
+    <link href="css/typeahead.css?v=3" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+        <div class="mx-auto order-0">
+            <a class="navbar-brand mx-auto" href="index.html">RadicalSAM.org</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNavItems" aria-controls="navbarNavItems" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+
+        <div class="navbar-collapse collapse w-100 order-3" id="navbarNavItems">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link" href="explore.html">Explore</a></li>
+                <li class="nav-item"><a class="nav-link active" href="search.html">Search</a></li>
+                <li class="nav-item"><a class="nav-link" href="roadmap.html">Roadmap</a></li>
+                <li class="nav-item"><a class="nav-link" href="submit.html">Submit</a></li>
+                <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+                <li class="nav-item"><a class="nav-link" href="contact.html">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <main role="main">
+        <div class="container">
+            <h1 class="text-center">Search</h1>
+        </div>
+
+        <div class="container" id="searchUi">
+            <div>
+                <form>
+                <h3>Find by UniProt ID</h3>
+                <p>
+                    Input a UniProt ID to identify the associated cluster within the 
+                    radical SAM superfamily.
+                </p>
+                <div id="searchIdErrorMsg" style="display: none" class="m-1 p-2 mb-3 rounded alert-warning search-error"></div>
+                <div class="form-group">
+                    <input class="form-control w-25" type="text" name="searchId" id="searchId" />
+                </div>
+                <div class="form-group mb-5 mt-1"><button class="btn btn-primary btn-sm" id="searchIdBtn">Find Cluster</button></div>
+            </form>
+            </div>
+
+            <div>
+                <h3>Find by Sequence</h3>
+                <p>
+                    Input a sequence to find a related cluster within the
+                    radical SAM superfamily.  The cluster that most closely matches the input sequence
+                    will be returned, allowing the user to access the associated data, including ID list,
+                    HMM, WebLogo, and other files.  The search is done with hmmscan from the HMMER package,
+                    against a database of HMMs collected from the clusters in the radical SAM superfamily.
+                </p>
+                <div id="searchSeqErrorMsg" style="display: none" class="m-1 p-2 mb-3 rounded alert-warning search-error"></div>
+                <div class="form-group">
+                    <textarea class="form-control w-75" id="searchSeq" cols="70" rows="10"></textarea>
+                </div>
+                <div class="mt-1"><button class="btn btn-primary btn-sm" id="searchSeqBtn">Find Clusters</button></div>
+            </div>
+
+            <div>
+                <h3>Find by Taxonomy</h3>
+                <p>
+                </p>
+                <div id="searchTaxTermErrorMsg" style="display: none" class="m-1 p-2 mb-3 rounded alert-warning search-error"></div>
+                <div class="form-group" style="display: none">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="searchTaxType" id="searchTaxTypeSpecies" value="1" checked>
+                        <label class="form-check-label" for="searchTaxTypeSpecies">Species</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="searchTaxType" id="searchTaxTypeGenus" value="1">
+                        <label class="form-check-label" for="searchTaxTypeGenus">Genus</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="radio" name="searchTaxType" id="searchTaxTypeFamily" value="1">
+                        <label class="form-check-label" for="searchTaxTypeFamily">Family</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <input class="form-control w-50" type="text" name="searchTaxTerm" id="searchTaxTerm" placeholder="Species" />
+                </div>
+                <div class="mt-1"><button class="btn btn-primary btn-sm" id="searchTaxTermBtn">Find Clusters</button></div>
+            </div>
+        </div>
+
+        <div class="container" id="searchResults" style="display: none">
+        </div>
+    </main>
+
+    <footer class="container">
+        <hr class="w-25" />
+        <div class="text-center">
+            radicalSAM.org <span class="pl-4"></span> Gerlt, Mitchell, Firouzbakht, and Oberg, 2020 <span class="pl-4"></span> <a href="https://efi.igb.illinois.edu">EFI</a> at <a href="https://igb.illinois.edu">Institute for Genomic Biology, University of Illinois</a>
+        </div>
+    </footer>
+    <script src="js/jquery-3.4.1.min.js"></script>
+    <script src="js/typeahead.bundle.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/network.js?v=2"></script>
+    <script src="js/search.js?v=4"></script>
+</body>
+</html>
