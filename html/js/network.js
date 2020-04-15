@@ -19,6 +19,7 @@ function Network(networkId, networkData) {
     this.sfld_map = networkData.sfld_map;
     this.sfld_desc = networkData.sfld_desc;
     this.enzymecodes = networkData.enzymecodes;
+    this.dataDir = networkData.data_dir;
     if (typeof this.data.public === "undefined")
         this.data.public = {};
     if (typeof this.data.families === "undefined")
@@ -44,6 +45,9 @@ Network.prototype.getRegions = function() {
 }
 Network.prototype.getTigr = function() {
     return Array.isArray(this.data.families.tigr) ? this.data.families.tigr : [];
+}
+Network.prototype.getDataDir = function() {
+    return typeof this.dataDir !== "undefined" ? this.dataDir : "data";
 }
 // Since there are potentially many KEGG IDs, we get the list of IDs async.
 Network.prototype.getKeggCount = function() {
@@ -71,6 +75,7 @@ Network.prototype.getKeggIds = function(addKeggIdFn, finishFn) {
 }
 Network.prototype.getSizes = function (netId = "") {
     if (netId) {
+        console.log(netId);
         return this.network_map[netId].size;
     }
     if (typeof this.data.size !== "undefined" && this.data.size.uniprot > 0) {
@@ -96,6 +101,12 @@ Network.prototype.getDownloadFeatures = function () {
 }
 Network.prototype.getNetworkMapName = function (networkId) {
     return typeof this.network_map[networkId] !== "undefined" ? this.network_map[networkId].name : "";
+}
+Network.prototype.getNetworkSfldTitle = function (networkId) {
+    if (typeof this.network_map[networkId] !== "undefined" && typeof this.network_map[networkId].sfld_title !== "undefined")
+        return this.network_map[networkId].sfld_title;
+    else
+        return "";
 }
 Network.prototype.getSfldDesc = function (id) {
     return typeof this.sfld_desc[id] !== "undefined" ? this.sfld_desc[id].desc : "";

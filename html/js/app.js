@@ -32,7 +32,7 @@ App.prototype.invalidNetworkJsonError = function() {
     $("#loadError").text("An application error occurred (invalid data in response).").show();
 }
 App.prototype.getDownloadButton = function (fileType) {
-    return '<a href="data/' + this.network.Id + '/' + fileType + '"><button class="btn btn-primary btn-sm">Download</button></a>';
+    return '<a href="' + this.dataDir + '/' + this.network.Id + '/' + fileType + '"><button class="btn btn-primary btn-sm">Download</button></a>';
 }
 App.prototype.getDownloadSize = function (fileType) {
     //TODO: implement this
@@ -48,6 +48,8 @@ App.prototype.init = function(network) {
     var hasSubgroups = network.getSubgroups().length > 0;
     var hasRegions = network.getRegions().length > 0;
     var isLeaf = !hasSubgroups && !hasRegions;
+
+    this.dataDir = network.getDataDir();
 
     this.progress = new Progress($("#progressLoader"));
     this.progress.start();
@@ -88,7 +90,6 @@ App.prototype.init = function(network) {
             .click(function () {
                 var id = $(this).data("node-id");
                 goToUrlFn(id);
-                //alert($(this).data("node-id"));
             });
     }
 }
@@ -123,21 +124,21 @@ App.prototype.addDisplayFeatures = function () {
         if (feat[i] == "weblogo") {
             //TESTING/DEBUGGING:
             //var img = $('<img src="data/weblogo.png" alt="WebLogo for ' + this.network.Id + '" class="display-img-width">');
-            var img = $('<img src="data/' + this.network.Id + '/weblogo.png" alt="WebLogo for ' + this.network.Id + '" class="display-img-width">');
+            var img = $('<img src="' + this.dataDir + '/' + this.network.Id + '/weblogo.png" alt="WebLogo for ' + this.network.Id + '" class="display-img-width">');
             $("#weblogo").append(img);
-            $("#downloadWeblogoImage").click(function (e) { e.preventDefault(); window.location.href = "data/" + that.network.Id + "/weblogo.png"; });
+            $("#downloadWeblogoImage").click(function (e) { e.preventDefault(); window.location.href = that.dataDir + "/" + that.network.Id + "/weblogo.png"; });
             $("#weblogoContainer").show();
         } else if (feat[i] == "length_histogram") {
             //TESTING/DEBUGGING:
             //var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
-            var img = $('<img src="data/' + this.network.Id + '/length_histogram_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
+            var img = $('<img src="' + this.dataDir + '/' + this.network.Id + '/length_histogram_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
             $("#fullLengthHistogram").append(img);
-            $("#downloadFullLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = "data/" + that.network.Id + "/length_histogram_lg.png"; });
+            $("#downloadFullLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = that.dataDir + "/" + that.network.Id + "/length_histogram_lg.png"; });
             //TESTING/DEBUGGING:
             //var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
-            var img = $('<img src="data/' + this.network.Id + '/length_histogram_filtered_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
+            var img = $('<img src="' + this.dataDir + '/' + this.network.Id + '/length_histogram_filtered_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
             $("#filteredLengthHistogram").append(img);
-            $("#downloadFiltLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = "data/" + that.network.Id + "/length_histogram_filtered_lg.png"; });
+            $("#downloadFiltLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = that.dataDir + "/" + that.network.Id + "/length_histogram_filtered_lg.png"; });
             $("#lengthHistogramContainer").show();
         }
     }
@@ -211,11 +212,11 @@ App.prototype.setClusterImage = function () {
         ;//TODO:
     else
         img
-            .attr("src", "data/" + this.network.Id + "/" + fileName + "_sm.png")
+            .attr("src", this.dataDir + "/" + this.network.Id + "/" + fileName + "_sm.png")
             .on("load", function () { that.addClusterHotspots(img); that.progress.stop(); });
     $("#downloadClusterImage").click(function (e) {
         e.preventDefault();
-        window.location.href = "data/" + that.network.Id + "/" + fileName + "_lg.png";
+        window.location.href = that.dataDir + "/" + that.network.Id + "/" + fileName + "_lg.png";
     });
 }
 // This should be called on the image
@@ -250,7 +251,7 @@ App.prototype.addClusterNumbers = function (parent) {
         var obj = $('<span id="cluster-num-text-' + data.id + '">' + data.name + "</span>");
         parent.append(obj);
         // Calculate the width of the text to properly align text for small clusters
-        var offset = (obj.width() / pw * 100 / 2);
+        var offset = (obj.width() / pw * 100 / 2) + 0.75;
         var pos = data.coords[0] + (data.coords[2] - data.coords[0]) / 2 - offset;
         obj.css({
             position: "absolute",
@@ -298,16 +299,20 @@ App.prototype.addTigrFamilies  = function () {
     var tigr = this.network.getTigr();
     if (tigr.length == 0)
         return;
-    var table = $('<table class="table table-sm w-auto"></table>');
+    var table = $('<table class="table table-sm w-100"></table>');
     var head = $('<thead><tr><th>TIGR ID</th><th>TIGR Description</th></tr></thead>');
     var body = $('<tbody></tbody>');
+    var text = "";
     for (var i = 0; i < tigr.length; i++) {
-        body.append('<tr><td>' + tigr[i].id + '</td><td>' + tigr[i].description + '</td></tr>');
+        body.append('<tr><td>' + tigr[i][0] + '</td><td>' + tigr[i][1] + '</td></tr>');
+        text += tigr[i][0] + "\t" + tigr[i][1] + "\n";
     }
     table.append(head).append(body);
     if (tigr.length > 0) {
-        $("#tigrFams").append(table);
-        $("#tigrFamContainer").show();
+        $("#tigrList").append(table);
+        $("#dataAvailableTigr").click(function () {
+            $("#tigrListModal").modal();
+        });
         $("#dataAvailableTigr").enableDataAvailableButton();
     }
 }
@@ -354,7 +359,6 @@ App.prototype.addSwissProtFunctions = function () {
         $("#spModalIdListClip").append(desc + "\n" + spItemIds);
     }
     $("#spFunctions").append(ul);
-    $("#spFunctionContainer").show();
     $("#spFunctions ul li span").css({ "font-style": "italic" });
     $("#dataAvailableSp").click(function() { $("#spModal").modal(); }).enableDataAvailableButton();
 }
@@ -391,13 +395,20 @@ App.prototype.addSubgroupTable = function (div) {
         $.each(this.network.getRegions(), function (i, data) {
             var row = $('<tr data-node-id="' + data.id + '"></tr>');
             var size = that.network.getSizes(data.id);
-            var sfldDesc = "";
             var sfldIds = that.network.getSfldIds(data.id);
-            for (var i = 0; i < sfldIds.length; i++) {
-                var sfldId = sfldIds[i];
-                if (sfldDesc.length)
-                    sfldDesc += '; ';
-                sfldDesc += "<span style=\"color: " + that.network.getSfldColor(sfldId) + ";\">" + that.network.getSfldDesc(sfldId) + " (" + sfldId + ")</span>";
+            var sfldDesc = that.network.getNetworkSfldTitle(data.id);
+            var sfldDisplayFn = function (sfldId, desc) {
+                return "<span style=\"color: " + that.network.getSfldColor(sfldId) + ";\">" + desc + "</span>";
+            };
+            if (!sfldDesc) {
+                for (var i = 0; i < sfldIds.length; i++) {
+                    var sfldId = sfldIds[i];
+                    if (sfldDesc.length)
+                        sfldDesc += '; ';
+                    sfldDesc += sfldDisplayFn(sfldId, that.network.getSfldDesc(sfldId) + " [" + sfldId + "]");
+                }
+            } else {
+                sfldDesc = sfldDisplayFn(sfldIds[0], sfldDesc + " [" + sfldIds.join("; ") + "]");
             }
             var rowHtml = "<td>" + data.name + "</td><td>" + data.number + "</td>";
             if (that.network.Id != "fullnetwork") //TODO: HACK

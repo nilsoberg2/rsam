@@ -8,8 +8,8 @@ class functions {
         $hash = sha1($key);
         return $hash;
     }
-    public static function get_database() {
-        $file = settings::get_cluster_db_path();
+    public static function get_database($version = "") {
+        $file = settings::get_cluster_db_path($version);
         try {
             $db = new PDO("sqlite:$file");
         } catch (PDOException $e) {

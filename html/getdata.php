@@ -3,7 +3,10 @@
 require_once(__DIR__ . "/../libs/settings.class.inc.php");
 require_once(__DIR__ . "/../libs/functions.class.inc.php");
 
-$db = functions::get_database();
+$version = filter_input(INPUT_GET, "v", FILTER_SANITIZE_NUMBER_INT);
+$version = (isset($version) && $version == 1) ? $version = 1 : "";
+
+$db = functions::get_database($version);
 
 // Available actions:
 //   cluster    get cluster data
@@ -40,10 +43,11 @@ if ($action == "kegg") {
         $data["sfld_map"] = get_sfld_map($db);
         $data["sfld_desc"] = get_sfld_desc($db);
         $data["enzymecodes"] = get_enzyme_codes($db);
+        $data["data_dir"] = settings::get_data_dir($version);
     }
 } else if ($action == "tax") {
     $tax = get_tax_data($db, $cluster_id);
-    if ($cluster === false) {
+    if ($tax  === false) {
         $data["valid"] = false;
         $data["message"] = "Retrieval error.";
     } else {
@@ -111,24 +115,62 @@ function get_cluster($db, $cluster_id) {
 
 
 
+function get_network_info_sfld_sql($extra_cols = "", $extra_join = "") {
+    if ($extra_cols)
+        $extra_cols = ", $extra_cols";
+    $sql = "SELECT network.cluster_id AS cluster_id, network.title AS title, network.name AS name, network.desc AS desc, sfld_map.sfld_id AS sfld_id, sfld_desc.sfld_desc AS sfld_desc "
+        . $extra_cols 
+        . " FROM network"
+        . " LEFT JOIN sfld_map ON network.cluster_id = sfld_map.cluster_id"
+        . " LEFT JOIN sfld_desc ON sfld_map.sfld_id = sfld_desc.sfld_id"
+        . " " . $extra_join
+        ;
+    return $sql;
+}
+function get_network_info_title($row, $sfld_only = false) {
+    $title = !$sfld_only ? $row["name"] : "";
+    if ($row["title"] && $row["sfld_id"]) {
+        if ($sfld_only) {
+            $title .= $row["title"];
+        } else {
+            $title .= ": SFLD Subgroup " . $row["sfld_id"];
+            $title .= " / " . $row["title"];
+        }
+        if (preg_match("/<SFLD>/", $title)) {
+            $title = preg_replace("/<SFLD>/", $row["sfld_desc"], $title);
+        }
+    } elseif ($row["sfld_id"]) {
+        if (!$sfld_only)
+            $title .= ": SFLD Subgroup " . $row["sfld_id"] . " / ";
+        $title .= $row["sfld_desc"];
+    } elseif ($row["title"]) {
+        $title .= (!$sfld_only ? ": " : "") . $row["title"];
+    }
+    return $title;
+}
 function get_network_info($db, $cluster_id) {
-    $sql = "SELECT * FROM network WHERE cluster_id = :id";
+    $sql = get_network_info_sfld_sql() . " WHERE network.cluster_id = :id";
     $sth = $db->prepare($sql);
     $sth->bindValue("id", $cluster_id);
     $sth->execute();
     $row = $sth->fetch();
-    if ($row)
-        return $row;
-    else
+    if ($row) {
+        $title = get_network_info_title($row);
+        return array("cluster_id" => $row["cluster_id"], "name" => $row["name"], "title" => $title, "desc" => $row["desc"]);
+    } else {
         return array("cluster_id" => $cluster_id, "name" => "", "title" => "", "desc" => "");
+    }
 }
 function get_all_network_names($db) {
-    $sql = "SELECT network.cluster_id, name, uniprot, uniref50, uniref90 FROM network LEFT JOIN size on network.cluster_id = size.cluster_id";
+    $sql = get_network_info_sfld_sql("uniprot, uniref50, uniref90", "LEFT JOIN size ON network.cluster_id = size.cluster_id");
+    //$sql = "SELECT network.cluster_id, name, uniprot, uniref50, uniref90 FROM network LEFT JOIN size on network.cluster_id = size.cluster_id";
     $sth = $db->prepare($sql);
     $sth->execute();
     $data = array();
+    $sfld_only = true;
     while ($row = $sth->fetch()) {
-        $data[$row["cluster_id"]] = array("name" => $row["name"], "size" => array("uniprot" => $row["uniprot"], "uniref90" => $row["uniref90"], "uniref50" => $row["uniref50"]));
+        $sfld_title = get_network_info_title($row, $sfld_only);
+        $data[$row["cluster_id"]] = array("name" => $row["name"], "sfld_title" => $sfld_title, "size" => array("uniprot" => $row["uniprot"], "uniref90" => $row["uniref90"], "uniref50" => $row["uniref50"]));
     }
     return $data;
 }
@@ -209,8 +251,9 @@ function get_pdb($db, $cluster_id, $check_only = false) {
 }
 
 function get_tigr($db, $cluster_id, $check_only = false) {
-    $sql = get_generic_sql("families", "family", "AND family_type = 'TIGR'", $check_only);
-    $row_fn = function($row) { return $row["family"]; };
+    $sql = "SELECT families.family, family_info.description FROM families LEFT JOIN family_info ON families.family = family_info.family WHERE cluster_id = :id AND family_type = 'TIGR'";
+    //$sql = get_generic_sql("families", "family", "AND family_type = 'TIGR'", $check_only);
+    $row_fn = function($row) { return array($row["family"], $row["description"]); };
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
 }
 
