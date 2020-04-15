@@ -131,3 +131,20 @@ ul.expandable li:before {
     max-height: 700px;
 }
 
+.nav-intro-tabs li {
+    text-transform: uppercase;
+    font-size: 0.83em;
+    font-weight: bold;
+}
+.nav-intro-tabs li a {
+/*    padding: 0.5rem 0.5rem;*/
+}
+
+ol li {
+    margin-bottom: 20px;
+}
+
+.tab-pane h5 {
+    margin-top: 15px;
+}
+
