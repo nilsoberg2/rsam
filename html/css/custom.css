@@ -140,10 +140,6 @@ ul.expandable li:before {
 /*    padding: 0.5rem 0.5rem;*/
 }
 
-ol li {
-    margin-bottom: 20px;
-}
-
 .tab-pane h5 {
     margin-top: 15px;
 }
