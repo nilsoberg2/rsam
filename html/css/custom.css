@@ -148,3 +148,11 @@ ol li {
     margin-top: 15px;
 }
 
+.tab-pane h6 {
+    font-weight: 600;
+}
+
+.intro-img {
+    display: inline-block;
+    vertical-align: top;
+}
