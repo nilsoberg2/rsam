@@ -46,6 +46,12 @@ Network.prototype.getRegions = function() {
 Network.prototype.getTigr = function() {
     return Array.isArray(this.data.families.tigr) ? this.data.families.tigr : [];
 }
+Network.prototype.getDicedParent = function() {
+    return (typeof this.data.dicing !== "undefined" && typeof this.data.dicing.parent !== "undefined") ? this.data.dicing.parent : "";
+}
+Network.prototype.getDicedChildren = function() {
+    return (typeof this.data.dicing !== "undefined" && Array.isArray(this.data.dicing.children)) ? this.data.dicing.children : [];
+}
 Network.prototype.getDataDir = function() {
     return typeof this.dataDir !== "undefined" ? this.dataDir : "data";
 }
@@ -75,7 +81,6 @@ Network.prototype.getKeggIds = function(addKeggIdFn, finishFn) {
 }
 Network.prototype.getSizes = function (netId = "") {
     if (netId) {
-        console.log(netId);
         return this.network_map[netId].size;
     }
     if (typeof this.data.size !== "undefined" && this.data.size.uniprot > 0) {

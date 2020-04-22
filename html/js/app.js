@@ -18,7 +18,8 @@ $(document).ready(function () {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // APP CLASS FOR POPULATING THE UI
 // 
-function App() {
+function App(version) {
+    this.version = version;
 }
 
 
@@ -32,7 +33,7 @@ App.prototype.invalidNetworkJsonError = function() {
     $("#loadError").text("An application error occurred (invalid data in response).").show();
 }
 App.prototype.getDownloadButton = function (fileType) {
-    return '<a href="' + this.dataDir + '/' + this.network.Id + '/' + fileType + '"><button class="btn btn-primary btn-sm">Download</button></a>';
+    return '<a href="' + this.getDownloadUrl(fileType) + '"><button class="btn btn-primary btn-sm">Download</button></a>';
 }
 App.prototype.getDownloadSize = function (fileType) {
     //TODO: implement this
@@ -47,21 +48,28 @@ App.prototype.init = function(network) {
     this.network = network;
     var hasSubgroups = network.getSubgroups().length > 0;
     var hasRegions = network.getRegions().length > 0;
-    var isLeaf = !hasSubgroups && !hasRegions;
+    var hasDicedChildren = network.getDicedChildren().length > 0;
+    var isLeaf = !hasSubgroups && !hasRegions && !hasDicedChildren;
 
     this.dataDir = network.getDataDir();
 
     this.progress = new Progress($("#progressLoader"));
     this.progress.start();
 
+    var that = this;
+    var addClusterNumbersFn = function() {
+        if (!isLeaf)
+            that.addClusterNumbers($("#clusterNums"));
+    };
+
     this.setPageHeaders(isLeaf);
-    this.setClusterImage();
+    this.setClusterImage(addClusterNumbersFn);
     this.addBreadcrumb();
     this.addTigrFamilies();
     this.checkForKegg();
 
     // Terminal endpoint
-    if (isLeaf) {
+    {
         this.addClusterSize();
         this.addSwissProtFunctions();
         this.addPdb();
@@ -73,24 +81,48 @@ App.prototype.init = function(network) {
         this.addSunburstFeature();
         this.progress.stop(); 
 
+    //} else {
+    }
     // Still more stuff to zoom in to
-    } else {
-        this.addClusterNumbers($("#clusterNums"));
-        var clusterTableDiv = $('<div id="clusterTable"></div>');
-        this.addSubgroupTable(clusterTableDiv);
-        $("#subgroupTable").show().append(clusterTableDiv);
+    if (!isLeaf) {
+        var applyRowClickableFn = function() {
+            $(".row-clickable tr")
+                .mouseover(function () {
+                    $("#cluster-region-" + $(this).data("node-id")).mouseover();
+                })
+                .mouseout(function () {
+                    $("#cluster-region-" + $(this).data("node-id")).mouseout();
+                })
+                .click(function () {
+                    var id = $(this).data("node-id");
+                    goToUrlFn(id, that.version);
+                });
+        };
 
-        $(".row-clickable tr")
-            .mouseover(function () {
-                $("#cluster-region-" + $(this).data("node-id")).mouseover();
-            })
-            .mouseout(function () {
-                $("#cluster-region-" + $(this).data("node-id")).mouseout();
-            })
-            .click(function () {
-                var id = $(this).data("node-id");
-                goToUrlFn(id);
-            });
+        var that = this;
+        var showFn = function() {
+            var clusterTableDiv = $('<div id="clusterTable"></div>');
+            that.addSubgroupTable(clusterTableDiv);
+            $("#subgroupTable").append(clusterTableDiv);
+        };
+
+        if (this.network.getDicedChildren().length > 0) {
+            $("#dicingInfo").show();
+            var showBtnFn = function() {
+                showFn();
+                applyRowClickableFn();
+                $("#showSubgroupTableDiv").hide();
+            };
+            var btn = $('<button class="btn btn-primary btn-sm">Show All Clusters</button>');
+            btn.click(showBtnFn);
+            var btnDiv = $('<div id="showSubgroupTableDiv"></div>').append(btn);
+            $("#subgroupTable").append(btnDiv);
+        } else {
+            showFn();
+            applyRowClickableFn();
+        }
+
+        $("#subgroupTable").show();
     }
 }
 
@@ -103,7 +135,6 @@ App.prototype.setPageHeaders = function (isLeafPage) {
     $("#familyTitle").text(document.title);
     $("#clusterDesc").text(this.network.getDescription());
     var headerText = isLeafPage ? " Data" : " Subgroups and Clusters";
-    $("#clusterTableContainer").append("<h2>" + this.network.getName() + headerText + "</h2>");
 }
 App.prototype.addClusterSize = function () {
     var size = this.network.getSizes();
@@ -126,19 +157,19 @@ App.prototype.addDisplayFeatures = function () {
             //var img = $('<img src="data/weblogo.png" alt="WebLogo for ' + this.network.Id + '" class="display-img-width">');
             var img = $('<img src="' + this.dataDir + '/' + this.network.Id + '/weblogo.png" alt="WebLogo for ' + this.network.Id + '" class="display-img-width">');
             $("#weblogo").append(img);
-            $("#downloadWeblogoImage").click(function (e) { e.preventDefault(); window.location.href = that.dataDir + "/" + that.network.Id + "/weblogo.png"; });
+            $("#downloadWeblogoImage").click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("weblogo"); });
             $("#weblogoContainer").show();
         } else if (feat[i] == "length_histogram") {
             //TESTING/DEBUGGING:
             //var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
             var img = $('<img src="' + this.dataDir + '/' + this.network.Id + '/length_histogram_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
             $("#fullLengthHistogram").append(img);
-            $("#downloadFullLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = that.dataDir + "/" + that.network.Id + "/length_histogram_lg.png"; });
+            $("#downloadFullLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist"); });
             //TESTING/DEBUGGING:
             //var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
             var img = $('<img src="' + this.dataDir + '/' + this.network.Id + '/length_histogram_filtered_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
             $("#filteredLengthHistogram").append(img);
-            $("#downloadFiltLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = that.dataDir + "/" + that.network.Id + "/length_histogram_filtered_lg.png"; });
+            $("#downloadFiltLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist_filt"); });
             $("#lengthHistogramContainer").show();
         }
     }
@@ -148,6 +179,8 @@ App.prototype.addDownloadFeatures = function () {
     if (feat.length == 0)
         return false;
 
+    var isDiced = this.network.getDicedParent().length > 0;
+
     var table = $('<table class="table table-sm text-center w-auto"></table>');
     table.append('<thead><tr><th>Download</th><th>File Type</th><th>Size</th></thead>');
     var body = $('<tbody>');
@@ -156,6 +189,9 @@ App.prototype.addDownloadFeatures = function () {
     for (var i = 0; i < feat.length; i++) {
         //"downloads": ["weblogo", "msa", "hmm", "id_fasta", "misc"]
         if (feat[i] == "gnn") {
+        } else if (feat[i] == "ssn") {
+            var parentSsnText = isDiced ? " (for parent cluster)" : "";
+            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".zip") + '</td><td>Sequence Similarity Network' + parentSsnText + '</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         } else if (feat[i] == "weblogo") {
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".png") + '</td><td>WebLogo for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         } else if (feat[i] == "msa") {
@@ -204,34 +240,42 @@ App.prototype.addDownloadFeatures = function () {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // PAGE IMAGE ELEMENTS
 // 
-App.prototype.setClusterImage = function () {
+App.prototype.setClusterImage = function (onFinishFn) {
     var img = $("#clusterImg");
-    var fileName = this.network.getImage();
-    var that = this;
-    if (Array.isArray(fileName))
-        ;//TODO:
-    else
-        img
-            .attr("src", this.dataDir + "/" + this.network.Id + "/" + fileName + "_sm.png")
-            .on("load", function () { that.addClusterHotspots(img); that.progress.stop(); });
-    $("#downloadClusterImage").click(function (e) {
-        e.preventDefault();
-        window.location.href = that.dataDir + "/" + that.network.Id + "/" + fileName + "_lg.png";
-    });
+    if (this.network.getDicedParent().length > 0) {
+        var parent = img.parent();
+        parent.addClass("text-center").addClass("p-5");
+        parent.text("Image not available for this cluster");
+        $("#downloadClusterImage").hide();
+    } else {
+        var fileName = this.network.getImage();
+        var that = this;
+        if (Array.isArray(fileName))
+            ;//TODO:
+        else
+            img
+                .attr("src", this.dataDir + "/" + this.network.Id + "/" + fileName + "_sm.png")
+                .on("load", function () { that.addClusterHotspots(img); that.progress.stop(); onFinishFn(); });
+        $("#downloadClusterImage").click(function (e) {
+            e.preventDefault();
+            window.location.href = that.getDownloadUrl("net");
+        });
+    }
 }
 // This should be called on the image
 App.prototype.addClusterHotspots = function (img) {
     var parent = img.parent();
     var w = img.width() / 100;
     var h = img.height() / 100;
+    var that = this;
     var imgmap = $('<map name="clusterHotspotMap" id="clusterHotspotMap"></map>');
     $.each(this.network.getRegions(), function (i, data) {
         var coords = [data.coords[0] * w, data.coords[1] * h, data.coords[2] * w, data.coords[3] * h];
         var coordStr = coords.join(",");
-        var shape = $('<area shape="rect" coords="' + coordStr + '" id="cluster-region-' + data.id + '" href="' + getUrlFn(data.id) + '">');
+        var shape = $('<area shape="rect" coords="' + coordStr + '" id="cluster-region-' + data.id + '" href="' + getUrlFn(data.id, that.version) + '">');
         shape
             .click(function () {
-                goToUrlFn(data.id);
+                goToUrlFn(data.id, that.version);
             })
             .mouseover(function () {
                 $("#cluster-num-text-" + data.id).css({ color: "red", "text-decoration": "underline" });
@@ -247,11 +291,15 @@ App.prototype.addClusterHotspots = function (img) {
 }
 App.prototype.addClusterNumbers = function (parent) {
     var pw = parent.width();
+    var width = $("#clusterImg").width() + "px";
+    var padding = -1;
+    $("#clusterNums").removeClass("w-100").css({width: width});
     $.each(this.network.getRegions(), function (i, data) {
-        var obj = $('<span id="cluster-num-text-' + data.id + '">' + data.name + "</span>");
+        var theName = data.coords[1] == 0 ? data.name : "";
+        var obj = $('<span id="cluster-num-text-' + data.id + '">' + theName + "</span>");
         parent.append(obj);
         // Calculate the width of the text to properly align text for small clusters
-        var offset = (obj.width() / pw * 100 / 2) + 0.75;
+        var offset = (obj.width() / pw * 100 / 2) + padding;
         var pos = data.coords[0] + (data.coords[2] - data.coords[0]) / 2 - offset;
         obj.css({
             position: "absolute",
@@ -276,7 +324,7 @@ App.prototype.addBreadcrumb = function() {
                 item = '<li class="breadcrumb-item active" aria-current="page">' + this.network.getName() + '</li>';
             } else {
                 var parentId = parts.slice(0, i + 1).join("-");
-                item = '<li class="breadcrumb-item"><a href="?id=' + parentId + '">';
+                item = '<li class="breadcrumb-item"><a href="?id=' + parentId + '&v=' + this.version + '">';
                 var parentNet = this.network.getNetworkMapName(parentId);
                 if (typeof parentNet !== "undefined")
                     item += parentNet;
@@ -385,7 +433,7 @@ App.prototype.addSubgroupTable = function (div) {
     var that = this;
 
     // If there are cleanly-defined sub-clusters, then the 'regions' property will be present.
-    if (typeof this.network.getRegions() !== "undefined") {
+    if (this.network.getRegions().length > 0) {
         var headHtml = '<thead><tr class="text-center"><th>Cluster</th><th>ID Cluster Number</th>';
         if (this.network.Id != "fullnetwork") //TODO: HACK
             headHtml += '<th>SFLD Subgroup</th>';
@@ -417,7 +465,15 @@ App.prototype.addSubgroupTable = function (div) {
             row.append(rowHtml);
             body.append(row);
         });
-    } else if (typeof this.network.getSubgroups() !== "undefined") {
+    } else if (this.network.getDicedChildren().length > 0) {
+        var head = table.append('<thead><tr><th>Sub-Cluster</th></tr></thead>');
+        var body = table.append('<tbody class="row-clickable text-center"></tbody>');
+        $.each(this.network.getDicedChildren(), function (i, data) {
+            var row = $('<tr data-node-id="' + data + '"></tr>');
+            row.append("<td>" + data + "</td>");
+            body.append(row);
+        });
+    } else if (this.network.getSubgroups().length > 0) {
         var head = table.append('<thead><tr><th>Cluster</th><th>SFLD Number</th><th>Subgroup</th></tr></thead>');
         var body = table.append('<tbody class="row-clickable text-center"></tbody>');
         $.each(this.network.getSubgroups(), function (i, data) {
@@ -428,6 +484,7 @@ App.prototype.addSubgroupTable = function (div) {
             body.append(row);
         });
     }
+
     div.append(table);
 }
 
@@ -450,7 +507,7 @@ App.prototype.addSunburstFeature = function() {
         $.ajax({
             dataType: "json",
             url: "getdata.php",
-            data: {cid: that.network.Id, a: "tax"},
+            data: {cid: that.network.Id, a: "tax", v: that.version},
             success: function(treeData) {
                 if (typeof(treeData.valid) !== "undefined" && treeData.valid === "false") {
                     //TODO: handle error
@@ -480,22 +537,32 @@ App.prototype.addSunburstFeature = function() {
 function getPageClusterId() {
     var paramStr = window.location.search.substring(1);
     var params = paramStr.split("&");
-    var reqId = "";
+    var reqId = "", version = "2.0";
     for (var i = 0; i < params.length; i++) {
         var parts = params[i].split("=");
         if (parts[0] === "id")
             reqId = parts[1];
+        else if (parts[0] === "v")
+            version = parts[1];
     }
+    //TODO: validate version
     if (reqId)
-        return reqId;
+        return {network_id: reqId, version: version};
     else
-        return "";
+        return {network_id: "", version: version};
 }
-function getUrlFn(id) {
-    return "?id=" + id;
+function getUrlFn(id, version) {
+    return "?id=" + id + "&v=" + version;
 }
-function goToUrlFn(id) {
-    window.location = getUrlFn(id);
+function goToUrlFn(id, version) {
+    window.location = getUrlFn(id, version);
+}
+App.prototype.getDownloadUrl = function(type) {
+    var extPos = type.indexOf(".");
+    if (extPos >= 0)
+        type = type.substr(0, extPos);
+    //this.dataDir + "/" + that.network.Id + "/weblogo.png"
+    return "download.php?c=" + this.network.Id + "&v=" + this.version + "&t=" + type;
 }
 function copyToClipboard(id) {
     $("#"+id).show().select();

@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <title></title>
     <link rel="stylesheet" href="css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
-    <link href="css/custom.css?v=4" rel="stylesheet" />
+    <link href="css/custom.css?v=7" rel="stylesheet" />
     <link href="css/font/css/all.css" rel="stylesheet" />
 </head>
 <body>
@@ -20,8 +20,9 @@
 
         <div class="navbar-collapse collapse w-100 order-3" id="navbarNavItems">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a class="nav-link active" href="explore.html">Explore</a></li>
-                <li class="nav-item"><a class="nav-link" href="explore_v1.html">Explore V1</a></li>
+                <li class="nav-item"><a class="nav-link active" href="explore_v21.html">Explore 2.1</a></li>
+                <li class="nav-item"><a class="nav-link active" href="explore_v2.html">Explore 2.0</a></li>
+                <li class="nav-item"><a class="nav-link" href="explore_v1.html">Explore 1.0</a></li>
                 <li class="nav-item"><a class="nav-link" href="search.html">Search</a></li>
                 <li class="nav-item"><a class="nav-link" href="submit.html">Submit</a></li>
                 <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
@@ -69,7 +70,11 @@
             <p class="text-center" id="clusterDesc">
             </p>
 
+            <div id="dicingInfo" style="display: none" class="dicing-info">
+                This cluster was diced.  TODO: put some description here??
+            </div>
             <div id="subgroupTable" style="display: none">
+                <h3 class="explore-heading">Sub-clusters (Segregated Into Higher Alignment Scores)</h3>
             </div>
             <div id="displayFeatures" style="display: none">
                 <div id="summaryInfoContainer">
@@ -159,18 +164,22 @@
     <script src="js/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <!--<script src="data/data.js?v=15"></script>-->
-    <script src="js/network.js?v=1"></script>
-    <script src="js/app.js?v=17"></script>
+    <script src="js/network.js?v=4"></script>
+    <script src="js/app.js?v=20"></script>
     <script src="js/imageMapResizer.min.js"></script>
     <script src="js/jquery.maphilight.min.js"></script>
     <script>
         $(document).ready(function () {
-            var requestId = getPageClusterId();
-            if (!requestId) {
+            var requestData = getPageClusterId();
+            console.log(requestData);
+            var requestId = "", version = "2.0";
+            if (!requestData.network_id)
                 requestId = "fullnetwork";
-            }
-            var app = new App();
-            $.get("getdata.php", {a: "cluster", cid: requestId}, function (dataStr) {
+            else
+                requestId = requestData.network_id;
+            version = requestData.version;
+            var app = new App(version);
+            $.get("getdata.php", {a: "cluster", cid: requestId, v: version}, function (dataStr) {
                 var data = parseNetworkJson(dataStr);
                 if (data !== false) {
                     if (data.valid) {

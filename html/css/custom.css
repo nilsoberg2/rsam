@@ -90,6 +90,10 @@ footer {
     width: 100%;
 }
 
+#clusterImg {
+    max-height: 550px;
+}
+
 h3.explore-heading {
     margin-bottom: 10px;
     font-style: italic;
@@ -152,3 +156,8 @@ ul.expandable li:before {
     display: inline-block;
     vertical-align: top;
 }
+
+.dicing-info {
+    font-weight: bold;
+}
+

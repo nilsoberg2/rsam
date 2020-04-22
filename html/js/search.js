@@ -1,9 +1,16 @@
 
 $(document).ready(function() {
     var url = "search.php";
+
+    var getVersion = function() {
+        var v = $("#version").val();
+        return v;
+    };
+
     var searchSeqFn = function() {
         var seq = $("#searchSeq").val();
-        $.post(url, {t: "seq", query: seq}, function(dataStr) {
+        var version = getVersion();
+        $.post(url, {t: "seq", query: seq, v: version}, function(dataStr) {
             var data = JSON.parse(dataStr);
             if (data.status !== true) {
                 $("#searchSeqErrorMsg").text(data.message).show();
@@ -15,15 +22,16 @@ $(document).ready(function() {
             		table.append(body);
                     for (var i = 0; i < data.matches.length; i++) {
                         var netName = typeof network !== 'undefined' ? network.getNetworkMapName(data.matches[i][0]) : data.matches[i][0];
-                        body.append('<tr><td><a href="explore.html?id=' + data.matches[i][0] + '">' + netName + '</a></td><td>' + data.matches[i][1] + '</td></tr>');
+                        body.append('<tr><td><a href="explore.html?v=' + version + '&id=' + data.matches[i][0] + '">' + netName + '</a></td><td>' + data.matches[i][1] + '</td></tr>');
                     }
                     $("#searchResults").empty().append(table).show();
                     $("#searchUi").hide();
                 };
 
-                $.get("getdata.php", {a: "netinfo"}, function (netDataStr) {
+                $.get("getdata.php", {a: "netinfo", v: version}, function (netDataStr) {
                     var data = parseNetworkJson(netDataStr);
                     var network;
+                    console.log(data);
                     if (data !== false) {
                         if (data.valid) {
                             network = new Network("", data);
@@ -36,13 +44,14 @@ $(document).ready(function() {
     };
     var searchIdFn = function() {
         var idVal = $("#searchId").val();
-        $.post(url, {t: "id", query: idVal}, function(dataStr) {
+        var version = getVersion();
+        $.post(url, {t: "id", query: idVal, v: version}, function(dataStr) {
             var data = JSON.parse(dataStr);
             console.log(data.status);
             if (data.status !== true) {
                 $("#searchIdErrorMsg").text(data.message).show();
             } else {
-                window.location.href = "explore.html?id=" + data.cluster_id;
+                window.location.href = "explore.html?v=" + version + "&id=" + data.cluster_id;
             }
         });
     };
@@ -52,7 +61,8 @@ $(document).ready(function() {
     var searchTaxFn = function() {
         var termVal = $("#searchTaxTerm").val();
         var termType = getSearchTaxType();
-        $.post(url, {t: "tax", query: termVal, type: termType}, function(dataStr) {
+        var version = getVersion();
+        $.post(url, {t: "tax", query: termVal, type: termType, v: version}, function(dataStr) {
             var data = JSON.parse(dataStr);
             if (data.status !== true) {
                 $("#searchTaxTermErrorMsg").text(data.message).show();
@@ -65,13 +75,13 @@ $(document).ready(function() {
                     for (var i = 0; i < data.matches.length; i++) {
                         var netName = typeof network !== 'undefined' ? network.getNetworkMapName(data.matches[i][0]) : data.matches[i][0];
                         if (netName)
-                            body.append('<tr><td><a href="explore.html?id=' + data.matches[i][0] + '">' + netName + '</a></td><td>' + data.matches[i][1] + '</td></tr>');
+                            body.append('<tr><td><a href="explore.html?v=' + version + '&id=' + data.matches[i][0] + '">' + netName + '</a></td><td>' + data.matches[i][1] + '</td></tr>');
                     }
                     $("#searchResults").empty().append(table).show();
                     $("#searchUi").hide();
                 };
 
-                $.get("getdata.php", {a: "netinfo"}, function (netDataStr) {
+                $.get("getdata.php", {a: "netinfo", v: version}, function (netDataStr) {
                     var data = parseNetworkJson(netDataStr);
                     var network;
                     if (data !== false) {

@@ -3,8 +3,8 @@
 require_once(__DIR__ . "/../libs/settings.class.inc.php");
 require_once(__DIR__ . "/../libs/functions.class.inc.php");
 
-$version = filter_input(INPUT_GET, "v", FILTER_SANITIZE_NUMBER_INT);
-$version = (isset($version) && $version == 1) ? $version = 1 : "";
+//$version = filter_input(INPUT_GET, "v", FILTER_SANITIZE_NUMBER_INT);
+$version = functions::validate_version();
 
 $db = functions::get_database($version);
 
@@ -15,7 +15,7 @@ $db = functions::get_database($version);
 $action = filter_input(INPUT_GET, "a", FILTER_SANITIZE_STRING);
 $cluster_id = filter_input(INPUT_GET, "cid", FILTER_SANITIZE_STRING);
 
-if (!validate_action($action) || ($cluster_id && !validate_cluster_id($db, $cluster_id))) {
+if (!validate_action($action) || ($cluster_id && !functions::validate_cluster_id($db, $cluster_id))) {
     echo json_encode(array("valid" => false, "message" => "Invalid request."));
     exit(0);
 }
@@ -91,6 +91,10 @@ function get_cluster($db, $cluster_id) {
         "families" => array(
             "tigr" => array(),
         ),
+        "dicing" => array(
+            "parent" => "",
+            "children" => array(),
+        ),
     );
 
     $info = get_network_info($db, $cluster_id);
@@ -106,6 +110,8 @@ function get_cluster($db, $cluster_id) {
     $data["display"] = get_display($db, $cluster_id);
     $data["download"] = get_download($db, $cluster_id);
     $data["regions"] = get_regions($db, $cluster_id);
+    $data["dicing"]["parent"] = get_dicing_parent($db, $cluster_id);
+    $data["dicing"]["children"] = get_dicing_children($db, $cluster_id);
 
     return $data;
 }
@@ -205,7 +211,8 @@ function get_display($db, $cluster_id) {
 }
 
 function get_download($db, $cluster_id) {
-    return array("weblogo", "msa", "hmm", "id_fasta", "misc");
+    //TODO: dynamically determine this??
+    return array("ssn", "weblogo", "msa", "hmm", "id_fasta", "misc");
 }
 
 function get_generic_fetch($db, $cluster_id, $sql, $handle_row_fn, $check_only = false) {
@@ -280,6 +287,23 @@ function get_regions($db, $cluster_id) {
         return $data;
     };
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
+}
+
+function get_dicing_parent($db, $cluster_id) {
+    $sql = get_generic_sql("dicing", "parent_id");
+    $row_fn = function($row) {
+        return $row["parent_id"];
+    };
+    $data = get_generic_fetch($db, $cluster_id, $sql, $row_fn, true); // true = return only first row in this case;
+    return isset($data) ? $data : "";
+}
+
+function get_dicing_children($db, $cluster_id) {
+    $sql = "SELECT cluster_id FROM dicing WHERE parent_id = :id";
+    $row_fn = function($row) {
+        return $row["cluster_id"];
+    };
+    return get_generic_fetch($db, $cluster_id, $sql, $row_fn); // true = return only first row in this case;
 }
 
 function get_sizes($db, $id) {
@@ -383,18 +407,4 @@ function traverse_tree($tree, $parent_name, $species_map) {
 function validate_action($action) {
     return ($action == "cluster" || $action == "kegg" || $action == "netinfo" || $action == "tax");
 }
-
-function validate_cluster_id($db, $id) {
-    $sql = "SELECT name FROM network WHERE cluster_id = :id";
-    $sth = $db->prepare($sql);
-    $sth->bindValue("id", $id);
-    if (!$sth->execute())
-        return false;
-    if ($sth->fetch())
-        return true;
-    else
-        return false;
-}
-
-
 

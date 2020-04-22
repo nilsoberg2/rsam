@@ -20,6 +20,7 @@ if (!$query && $type != "tax-prefetch") {
     print json_encode(array("status" => false, "message" => "Invalid input"));
     exit(0);
 }
+$version = functions::validate_version($_POST["v"]);
 
 
 if ($type == "seq") {
@@ -36,7 +37,7 @@ if ($type == "seq") {
 
 
     $hmmscan = settings::get_hmmscan_path();
-    $hmmdb = settings::get_hmmdb_path();
+    $hmmdb = settings::get_hmmdb_path($version);
     $out_path = "$out_dir/output.txt";
     $table_path = "$out_dir/results.txt";
 
@@ -65,23 +66,28 @@ if ($type == "seq") {
     print json_encode(array("status" => true, "matches" => $matches));
 } else if ($type == "id") {
 
-    $file = settings::get_cluster_db_path();
+    $file = settings::get_cluster_db_path($version);
     $db = new SQLite3($file);
     $id = $db->escapeString($query);
     $sql = "SELECT cluster_id FROM id_mapping WHERE uniprot_id = '$id'";
     $results = $db->query($sql);
-    $row = $results->fetchArray();
-    if ($row) {
-        print json_encode(array("status" => true, "cluster_id" => $row["cluster_id"]));
-    } else {
-        print json_encode(array("status" => false, "message" => "ID not found"));
+    $cluster_id = "";
+    while ($row = $results->fetchArray()) {
+        // Want bottom-level cluster
+        if (strlen($row["cluster_id"]) > $cluster_id)
+            $cluster_id = $row["cluster_id"];
     }
+
+    if ($cluster_id)
+        print json_encode(array("status" => true, "cluster_id" => $cluster_id));
+    else
+        print json_encode(array("status" => false, "message" => "ID not found"));
 
     $db->close();
 } else if ($type == "tax") {
     $type = filter_input(INPUT_POST, "type", FILTER_SANITIZE_STRING);
     $field = $type == "genus" ? "genus" : ($type == "family" ? "family" : "species");
-    $file = settings::get_cluster_db_path();
+    $file = settings::get_cluster_db_path($version);
     $db = new SQLite3($file);
 
     $query = $db->escapeString($query);
@@ -120,7 +126,7 @@ if ($type == "seq") {
 } else if ($type == "tax-prefetch") {
     //$field = $type == "genus" ? "genus" : ($type == "family" ? "family" : "species");
     $field = "species";
-    $file = settings::get_cluster_db_path();
+    $file = settings::get_cluster_db_path($version);
     $db = new SQLite3($file);
 
     $sql = "SELECT $field FROM taxonomy LIMIT 1000";
@@ -135,7 +141,7 @@ if ($type == "seq") {
 } else if ($type == "tax-auto") {
     //$field = $type == "genus" ? "genus" : ($type == "family" ? "family" : "species");
     $field = "species";
-    $file = settings::get_cluster_db_path();
+    $file = settings::get_cluster_db_path($version);
     $db = new SQLite3($file);
 
     $query = $db->escapeString($query);
