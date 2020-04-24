@@ -1,4 +1,6 @@
 
+const DEFAULT_VERSION = "2.1";
+
 // Extend the jQuery API for data available buttons
 $(document).ready(function () {
     $(".copy-btn").click(function(e) {
@@ -13,6 +15,35 @@ $(document).ready(function () {
         },
     });
 });
+
+function initApp(version) {
+    var requestData = getPageClusterId();
+    var requestId = "", alignmentScore = "";
+    if (!requestData.network_id)
+        requestId = "fullnetwork";
+    else
+        requestId = requestData.network_id;
+    if (requestData.alignment_score)
+        alignmentScore = requestData.alignment_score;
+    version = requestData.version;
+    var app = new App(version, alignmentScore);
+    var args = {a: "cluster", cid: requestId, v: version};
+    if (alignmentScore)
+        args["as"] = alignmentScore;
+    $.get("getdata.php", args, function (dataStr) {
+        var data = parseNetworkJson(dataStr);
+        if (data !== false) {
+            if (data.valid) {
+                var network = new Network(requestId, data);
+                app.init(network);
+            } else {
+                app.responseError(data.message);
+            }
+        } else {
+            app.invalidNetworkJsonError(dataStr);
+        }
+    });
+}
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -52,89 +83,110 @@ App.prototype.init = function(network) {
     var isLeaf = !hasSubgroups && !hasRegions && !hasDicedChildren;
 
     this.dataDir = network.getDataDir();
+    this.alignmentScore = network.getAlignmentScore();
 
     this.progress = new Progress($("#progressLoader"));
     this.progress.start();
 
+    this.setPageHeaders();
+    this.addBreadcrumb();
+    if (this.network.getAltSsns().length > 0) {
+        this.initAltSsn();
+    } else {
+        this.initStandard(isLeaf);
+        if (this.network.Id != "fullnetwork")
+            this.initLeafData();
+        // Still more stuff to zoom in to
+        if (!isLeaf)
+            this.initChildren();
+    }
+
+    if (this.network.Id != "fullnetwork")
+        this.addDownloadFeatures();
+    
+    applyRowClickableFn(this.version);
+}
+App.prototype.initAltSsn = function() {
+    this.setClusterImage(function() {});
+    var altDiv = $("#altSsn");
+    this.addAltSsns(altDiv);
+}
+App.prototype.initStandard = function(isLeaf) {
     var that = this;
     var addClusterNumbersFn = function() {
         if (!isLeaf)
             that.addClusterNumbers($("#clusterNums"));
     };
-
-    this.setPageHeaders(isLeaf);
     this.setClusterImage(addClusterNumbersFn);
-    this.addBreadcrumb();
-    this.addTigrFamilies();
-    this.checkForKegg();
-
-    // Terminal endpoint
-    {
-        this.addClusterSize();
+    if (this.network.Id != "fullnetwork") {
+        this.addTigrFamilies();
+        this.checkForKegg();
+    }
+}
+App.prototype.initLeafData = function() {
+    var hasData = this.addDisplayFeatures();
+    this.addClusterSize();
+    if (hasData) {
         this.addSwissProtFunctions();
         this.addPdb();
-        this.addDisplayFeatures();
-        this.addDownloadFeatures();
-        $("#dataAvailable").show();
-        $("#submitAnnoLink").attr("href", $("#submitAnnoLink").attr("href") + "?id=" + this.network.Id);
         $("#displayFeatures").show();
+        $("#dataAvailable").show();
         this.addSunburstFeature();
-        this.progress.stop(); 
-
-    //} else {
     }
-    // Still more stuff to zoom in to
-    if (!isLeaf) {
-        var applyRowClickableFn = function() {
-            $(".row-clickable tr")
-                .mouseover(function () {
-                    $("#cluster-region-" + $(this).data("node-id")).mouseover();
-                })
-                .mouseout(function () {
-                    $("#cluster-region-" + $(this).data("node-id")).mouseout();
-                })
-                .click(function () {
-                    var id = $(this).data("node-id");
-                    goToUrlFn(id, that.version);
-                });
-        };
+    $("#submitAnnoLink").attr("href", $("#submitAnnoLink").attr("href") + "?id=" + this.network.Id);
+}
+App.prototype.initChildren = function() {
+    var that = this;
+    var showFn = function() {
+        var clusterTableDiv = $('<div id="clusterTable"></div>');
+        that.addSubgroupTable(clusterTableDiv);
+        $("#subgroupTable").append(clusterTableDiv);
+    };
 
-        var that = this;
-        var showFn = function() {
-            var clusterTableDiv = $('<div id="clusterTable"></div>');
-            that.addSubgroupTable(clusterTableDiv);
-            $("#subgroupTable").append(clusterTableDiv);
-        };
-
-        if (this.network.getDicedChildren().length > 0) {
-            $("#dicingInfo").show();
-            var showBtnFn = function() {
-                showFn();
-                applyRowClickableFn();
-                $("#showSubgroupTableDiv").hide();
-            };
-            var btn = $('<button class="btn btn-primary btn-sm">Show All Clusters</button>');
-            btn.click(showBtnFn);
-            var btnDiv = $('<div id="showSubgroupTableDiv"></div>').append(btn);
-            $("#subgroupTable").append(btnDiv);
-        } else {
-            showFn();
-            applyRowClickableFn();
+    var kids = this.network.getDicedChildren();
+    if (kids.length > 0) {
+        $("#dicingInfo").show();
+        var menu = $('<select class="form-control w-25"></select>');
+        for (var i = 0; i < kids.length; i++) {
+            menu.append($('<option></option>').attr("value", kids[i]).text(kids[i]));
         }
-
-        $("#subgroupTable").show();
+        menu.val("");
+        menu.change(function() {
+            var id = $(this).val();
+            goToUrlFn(id, that.version);
+        });
+        $("#subgroupTable").append(menu);
+        //var showBtnFn = function() {
+        //    showFn();
+        //    applyRowClickableFn();
+        //    $("#showSubgroupTableDiv").hide();
+        //};
+        //var btn = $('<button class="btn btn-primary btn-sm">Show All Clusters</button>');
+        //btn.click(showBtnFn);
+        //var btnDiv = $('<div id="showSubgroupTableDiv"></div>').append(btn);
+        //$("#subgroupTable").append(btnDiv);
+    } else {
+        showFn();
     }
+
+    $("#subgroupTable").show();
 }
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // PAGE TEXT ELEMENTS
 //
-App.prototype.setPageHeaders = function (isLeafPage) {
+App.prototype.setPageHeaders = function () {
     document.title = this.network.getPageTitle();
     $("#familyTitle").text(document.title);
     $("#clusterDesc").text(this.network.getDescription());
-    var headerText = isLeafPage ? " Data" : " Subgroups and Clusters";
+    var as = this.alignmentScore;
+    if (as.length > 0) {
+        var hWarn = $('<span class="as-warning"> (Alignment Score ' + as + ')</span>');
+        $("#familyTitle").append(hWarn);
+        var dWarn = $('<div class="as-warning">Results for this alignment score (' + as + ') only include downloads below.</div>');
+        $("#clusterDesc").append(dWarn);
+    }
 }
 App.prototype.addClusterSize = function () {
     var size = this.network.getSizes();
@@ -151,6 +203,7 @@ App.prototype.addClusterSize = function () {
 App.prototype.addDisplayFeatures = function () {
     var feat = this.network.getDisplayFeatures();
     var that = this;
+    var hasData = feat.length > 0;
     for (var i = 0; i < feat.length; i++) {
         if (feat[i] == "weblogo") {
             //TESTING/DEBUGGING:
@@ -173,6 +226,7 @@ App.prototype.addDisplayFeatures = function () {
             $("#lengthHistogramContainer").show();
         }
     }
+    return hasData;
 }
 App.prototype.addDownloadFeatures = function () {
     var feat = this.network.getDownloadFeatures();
@@ -192,6 +246,8 @@ App.prototype.addDownloadFeatures = function () {
         } else if (feat[i] == "ssn") {
             var parentSsnText = isDiced ? " (for parent cluster)" : "";
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".zip") + '</td><td>Sequence Similarity Network' + parentSsnText + '</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
+        } else if (feat[i] == "cons") { // consensus residue
+            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".txt") + '</td><td>Consensus Residues</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         } else if (feat[i] == "weblogo") {
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".png") + '</td><td>WebLogo for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         } else if (feat[i] == "msa") {
@@ -247,6 +303,7 @@ App.prototype.setClusterImage = function (onFinishFn) {
         parent.addClass("text-center").addClass("p-5");
         parent.text("Image not available for this cluster");
         $("#downloadClusterImage").hide();
+        this.progress.stop();
     } else {
         var fileName = this.network.getImage();
         var that = this;
@@ -489,6 +546,29 @@ App.prototype.addSubgroupTable = function (div) {
 }
 
 
+App.prototype.addAltSsns = function (div) {
+    var as = this.alignmentScore;
+    var that = this;
+    var table = $('<table class="table table-sm text-center w-auto"></table>');
+    table.append('<thead><tr><th>Alignment Score</th></thead>');
+    var body = table.append('<tbody class="row-clickable text-center"></tbody>');
+    table.append(body);
+    if (as) {
+        var row = $('<tr data-node-id="' + that.network.Id + '" data-alignment-score="' + '"></tr>');
+        row.append("<td>" + "Default" + "</td>");
+        body.append(row);
+    }
+    $.each(this.network.getAltSsns(), function (i, data) {
+        if (data[0]) {
+            var row = $('<tr data-node-id="' + that.network.Id + '" data-alignment-score="' + data[0] + '"></tr>');
+            row.append("<td>" + data[0] + "</td>");
+            body.append(row);
+        }
+    });
+    div.append(table).show();
+}
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // SUNBURST
 //
@@ -497,6 +577,10 @@ App.prototype.showSunburst = function() {
 
 
 App.prototype.addSunburstFeature = function() {
+    var hasData = this.network.getDisplayFeatures().length > 0;
+    if (!hasData)
+        return;
+
     var that = this;
     var Colors = getSunburstColorFn();
 
@@ -534,35 +618,61 @@ App.prototype.addSunburstFeature = function() {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // UTILITY FUNCTIONS
 //
+function applyRowClickableFn(version) {
+    $(".row-clickable tr")
+        .mouseover(function () {
+            $("#cluster-region-" + $(this).data("node-id")).mouseover();
+        })
+        .mouseout(function () {
+            $("#cluster-region-" + $(this).data("node-id")).mouseout();
+        })
+        .click(function () {
+            var id = $(this).data("node-id");
+            var alignmentScore = $(this).data("alignment-score");
+            if (!alignmentScore)
+                alignmentScore = "";
+            goToUrlFn(id, version, alignmentScore);
+        });
+}
 function getPageClusterId() {
     var paramStr = window.location.search.substring(1);
     var params = paramStr.split("&");
-    var reqId = "", version = "2.0";
+    var reqId = "", version = DEFAULT_VERSION, as = "";
     for (var i = 0; i < params.length; i++) {
         var parts = params[i].split("=");
         if (parts[0] === "id")
             reqId = parts[1];
         else if (parts[0] === "v")
             version = parts[1];
+        else if (parts[0] === "as")
+            as = parts[1];
     }
     //TODO: validate version
+    var data = {network_id: "", version: version}
     if (reqId)
-        return {network_id: reqId, version: version};
-    else
-        return {network_id: "", version: version};
+        data.network_id = reqId;
+    if (!isNaN(as))
+        data.alignment_score = as;
+    return data;
 }
-function getUrlFn(id, version) {
-    return "?id=" + id + "&v=" + version;
+function getUrlFn(id, version, alignmentScore = "") {
+    var url = "?id=" + id + "&v=" + version;
+    if (alignmentScore)
+        url += "&as=" + alignmentScore;
+    return url;
 }
-function goToUrlFn(id, version) {
-    window.location = getUrlFn(id, version);
+function goToUrlFn(id, version, alignmentScore = "") {
+    window.location = getUrlFn(id, version, alignmentScore);
 }
 App.prototype.getDownloadUrl = function(type) {
     var extPos = type.indexOf(".");
     if (extPos >= 0)
         type = type.substr(0, extPos);
     //this.dataDir + "/" + that.network.Id + "/weblogo.png"
-    return "download.php?c=" + this.network.Id + "&v=" + this.version + "&t=" + type;
+    var url = "download.php?c=" + this.network.Id + "&v=" + this.version + "&t=" + type;
+    if (this.alignmentScore)
+        url += "&as=" + this.alignmentScore;
+    return url;
 }
 function copyToClipboard(id) {
     $("#"+id).show().select();

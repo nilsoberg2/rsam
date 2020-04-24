@@ -161,3 +161,11 @@ ul.expandable li:before {
     font-weight: bold;
 }
 
+.as-warning {
+    color: red;
+}
+div.as-warning {
+    font-size: 2em;
+    font-weight: bold;
+}
+

@@ -43,5 +43,17 @@ class functions {
         else
             return false;
     }
+    public static function get_ssn_path($db, $cluster) {
+        $sql = "SELECT ssn FROM ssn WHERE cluster_id = :id";
+        $sth = $db->prepare($sql);
+        if (!$sth)
+            return false;
+        $sth->bindValue("id", $cluster);
+        $data = false;
+        if ($sth->execute()) {
+            $data = $sth->fetch();
+        }
+        return $data;
+    }
 }
 

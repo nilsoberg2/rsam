@@ -25,6 +25,11 @@ function Network(networkId, networkData) {
     if (typeof this.data.families === "undefined")
         this.data.families = {};
 }
+Network.prototype.getAlignmentScore = function() {
+    //DEBUG:
+    //this.data.alignment_score = "22";
+    return typeof this.data.alignment_score !== "undefined" ? this.data.alignment_score : "";
+}
 Network.prototype.getPageTitle = function() {
     return typeof this.data.title !== "undefined" ? this.data.title : "Title";
 }
@@ -51,6 +56,9 @@ Network.prototype.getDicedParent = function() {
 }
 Network.prototype.getDicedChildren = function() {
     return (typeof this.data.dicing !== "undefined" && Array.isArray(this.data.dicing.children)) ? this.data.dicing.children : [];
+}
+Network.prototype.getAltSsns = function() {
+    return (typeof this.data.alt_ssn !== "undefined" && Array.isArray(this.data.alt_ssn)) ? this.data.alt_ssn : [];
 }
 Network.prototype.getDataDir = function() {
     return typeof this.dataDir !== "undefined" ? this.dataDir : "data";

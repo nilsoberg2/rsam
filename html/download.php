@@ -32,15 +32,10 @@ $fname = "";
 
 
 if ($type[0] == "ssn") {
-    $sql = "SELECT ssn FROM ssn WHERE cluster_id = :id";
-    $sth = $db->prepare($sql);
-    $sth->bindValue("id", $cluster);
-    if ($sth->execute()) {
-        $data = $sth->fetch();
-        if ($data) {
-            $fpath = $data["ssn"];
-            $fname = "${cluster}_ssn.zip";
-        }
+    $data = functions::get_ssn_path($db, $cluster);
+    if ($data) {
+        $fpath = $data["ssn"];
+        $fname = "${cluster}_ssn.zip";
     }
 } else {
     $options = array("${cluster}_", "");

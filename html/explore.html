@@ -20,9 +20,9 @@
 
         <div class="navbar-collapse collapse w-100 order-3" id="navbarNavItems">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a class="nav-link active" href="explore_v21.html">Explore 2.1</a></li>
-                <li class="nav-item"><a class="nav-link active" href="explore_v2.html">Explore 2.0</a></li>
-                <li class="nav-item"><a class="nav-link" href="explore_v1.html">Explore 1.0</a></li>
+                <li class="nav-item"><a class="nav-link active" href="explore.html?v=2.1">Explore 2.1</a></li>
+                <li class="nav-item"><a class="nav-link" href="explore.html?v=2.0">Explore 2.0</a></li>
+                <li class="nav-item"><a class="nav-link" href="explore.html?v=1.0">Explore 1.0</a></li>
                 <li class="nav-item"><a class="nav-link" href="search.html">Search</a></li>
                 <li class="nav-item"><a class="nav-link" href="submit.html">Submit</a></li>
                 <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
@@ -72,6 +72,24 @@
 
             <div id="dicingInfo" style="display: none" class="dicing-info">
                 This cluster was diced.  TODO: put some description here??
+            </div>
+
+            <!--
+            <div id="contentTabsDiv">
+                <ul class="nav nav-tabs nav-intro-tabs" id="contentTabs" role="tablist">
+                    <li class="nav-item" id="#subgroup-li" style="display: none"><a href="#subgroups" id="tab-subgroups" class="nav-link active" data-toggle="tab" role="tab" aria-controls="subgroups" aria-selected="true">Sub-clusters</a></li>
+                    <li class="nav-item"><a href="#subgroups" id="tab-subgroups" class="nav-link" data-toggle="tab" role="tab" aria-controls="subgroups" aria-selected="false">Subgroups</a></li>
+                    <li class="nav-item"><a href="#b12spasm" id="tab-b12spasm" class="nav-link" data-toggle="tab" role="tab" aria-controls="b12spasm" aria-selected="false">B12-Binding and SPASM Domains</a></li>
+                    <li class="nav-item"><a href="#search" id="tab-search" class="nav-link" data-toggle="tab" role="tab" aria-controls="search" aria-selected="false">Search Functions</a></li>
+                    <li class="nav-item"><a href="#database" id="tab-database" class="nav-link" data-toggle="tab" role="tab" aria-controls="database" aria-selected="false">Database Updates</a></li>
+                    <li class="nav-item"><a href="#community" id="tab-community" class="nav-link" data-toggle="tab" role="tab" aria-controls="community" aria-selected="false">Community Annotation</a></li>
+                </ul>
+                <div class="tab-content" id="introTabCOntent">
+                    <div class="tab-pane fade show active" id="background" role="tabpanel" aria-labelledby="tab-background">
+-->
+            <div id="altSsn" style="display: none">
+                <h3 class="explore-heading">Additional Alignment Score Segregations</h3>
+                <p>This cluster has also been segregated with alternative alignment scores.</p>
             </div>
             <div id="subgroupTable" style="display: none">
                 <h3 class="explore-heading">Sub-clusters (Segregated Into Higher Alignment Scores)</h3>
@@ -170,28 +188,11 @@
     <script src="js/jquery.maphilight.min.js"></script>
     <script>
         $(document).ready(function () {
-            var requestData = getPageClusterId();
-            console.log(requestData);
-            var requestId = "", version = "2.0";
-            if (!requestData.network_id)
-                requestId = "fullnetwork";
-            else
-                requestId = requestData.network_id;
-            version = requestData.version;
-            var app = new App(version);
-            $.get("getdata.php", {a: "cluster", cid: requestId, v: version}, function (dataStr) {
-                var data = parseNetworkJson(dataStr);
-                if (data !== false) {
-                    if (data.valid) {
-                        var network = new Network(requestId, data);
-                        app.init(network);
-                    } else {
-                        app.responseError(data.message);
-                    }
-                } else {
-                    app.invalidNetworkJsonError(dataStr);
-                }
-            });
+            var progress = new Progress($("#progressLoader"));
+            progress.start();
+
+            initApp("2.1");
+    
             $('[data-toggle="tooltip"]').tooltip();
         });
     </script>

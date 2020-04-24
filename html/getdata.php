@@ -14,6 +14,7 @@ $db = functions::get_database($version);
 //
 $action = filter_input(INPUT_GET, "a", FILTER_SANITIZE_STRING);
 $cluster_id = filter_input(INPUT_GET, "cid", FILTER_SANITIZE_STRING);
+$alignment_score = filter_input(INPUT_GET, "as", FILTER_SANITIZE_NUMBER_INT);
 
 if (!validate_action($action) || ($cluster_id && !functions::validate_cluster_id($db, $cluster_id))) {
     echo json_encode(array("valid" => false, "message" => "Invalid request."));
@@ -33,7 +34,7 @@ if ($action == "kegg") {
         $data["kegg"] = $kegg;
     }
 } else if ($action == "cluster") {
-    $cluster = get_cluster($db, $cluster_id);
+    $cluster = get_cluster($db, $cluster_id, $alignment_score);
     if ($cluster === false) {
         $data["valid"] = false;
         $data["message"] = "Cluster error.";
@@ -66,13 +67,14 @@ echo json_encode($data);
 
 
 
-function get_cluster($db, $cluster_id) {
+function get_cluster($db, $cluster_id, $alignment_score) {
     $data = array(
         "size" => array(
             "uniprot" => 0,
             "uniref90" => 0,
             "uniref50" => 0,
         ),
+        "alignment_score" => "",
         "name" => "",
         "desc" => "",
         "image" => "",
@@ -95,6 +97,7 @@ function get_cluster($db, $cluster_id) {
             "parent" => "",
             "children" => array(),
         ),
+        "alt_ssn" => array(),
     );
 
     $info = get_network_info($db, $cluster_id);
@@ -112,6 +115,9 @@ function get_cluster($db, $cluster_id) {
     $data["regions"] = get_regions($db, $cluster_id);
     $data["dicing"]["parent"] = get_dicing_parent($db, $cluster_id);
     $data["dicing"]["children"] = get_dicing_children($db, $cluster_id);
+    $data["alt_ssn"] = get_alt_ssns($db, $cluster_id);
+    if ($alignment_score)
+        $data["alignment_score"] = $alignment_score;
 
     return $data;
 }
@@ -188,7 +194,7 @@ function get_sfld_map($db) {
     $data = array();
     while ($row = $sth->fetch()) {
         $cid = $row["cluster_id"];
-        if (!is_array($data[$cid]))
+        if (!isset($data[$cid]) || !is_array($data[$cid]))
             $data[$cid] = array();
         array_push($data[$cid], $row["sfld_id"]);
     }
@@ -207,12 +213,39 @@ function get_sfld_desc($db) {
 }
 
 function get_display($db, $cluster_id) {
-    return array("weblogo", "length_histogram");
+    $basepath = functions::get_data_dir_path($version);
+    $cpath = "$basepath/$cluster_id";
+
+    $feat = array();
+    if (file_exists("$cpath/weblogo.png"))
+        array_push($feat, "weblogo");
+    if (file_exists("$cpath/length_histogram_lg.png"))
+        array_push($feat, "length_histogram");
+    return $feat;
 }
 
 function get_download($db, $cluster_id) {
-    //TODO: dynamically determine this??
-    return array("ssn", "weblogo", "msa", "hmm", "id_fasta", "misc");
+    $basepath = functions::get_data_dir_path($version);
+    $cpath = "$basepath/$cluster_id";
+
+    $feat = array();
+
+    $ssn = functions::get_ssn_path($db, $cluster_id);
+    if ($ssn)
+        array_push($feat, "ssn");
+    if (file_exists("$cpath/weblogo.png"))
+        array_push($feat, "weblogo");
+    if (file_exists("$cpath/msa.afa"))
+        array_push($feat, "msa");
+    if (file_exists("$cpath/hmm.hmm"))
+        array_push($feat, "hmm");
+    if (file_exists("$cpath/uniprot.txt"))
+        array_push($feat, "id_fasta");
+    if (file_exists("$cpath/swissprot.txt"))
+        array_push($feat, "misc");
+
+    return $feat;
+    //return array("ssn", "weblogo", "msa", "hmm", "id_fasta", "misc");
 }
 
 function get_generic_fetch($db, $cluster_id, $sql, $handle_row_fn, $check_only = false) {
@@ -304,6 +337,14 @@ function get_dicing_children($db, $cluster_id) {
         return $row["cluster_id"];
     };
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn); // true = return only first row in this case;
+}
+
+function get_alt_ssns($db, $cluster_id) {
+    $sql = "SELECT * FROM ssn WHERE cluster_id = :id AND alignment_score != ''";
+    $row_fn = function($row) {
+        return array($row["alignment_score"]);
+    };
+    return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
 }
 
 function get_sizes($db, $id) {
