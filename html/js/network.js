@@ -19,7 +19,7 @@ function Network(networkId, networkData) {
     this.sfld_map = networkData.sfld_map;
     this.sfld_desc = networkData.sfld_desc;
     this.enzymecodes = networkData.enzymecodes;
-    this.dataDir = networkData.data_dir;
+    this.dataDir = this.data.dir;
     if (typeof this.data.public === "undefined")
         this.data.public = {};
     if (typeof this.data.families === "undefined")

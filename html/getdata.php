@@ -34,7 +34,7 @@ if ($action == "kegg") {
         $data["kegg"] = $kegg;
     }
 } else if ($action == "cluster") {
-    $cluster = get_cluster($db, $cluster_id, $alignment_score);
+    $cluster = get_cluster($db, $cluster_id, $alignment_score, $version);
     if ($cluster === false) {
         $data["valid"] = false;
         $data["message"] = "Cluster error.";
@@ -44,7 +44,6 @@ if ($action == "kegg") {
         $data["sfld_map"] = get_sfld_map($db);
         $data["sfld_desc"] = get_sfld_desc($db);
         $data["enzymecodes"] = get_enzyme_codes($db);
-        $data["data_dir"] = settings::get_data_dir($version);
     }
 } else if ($action == "tax") {
     $tax = get_tax_data($db, $cluster_id);
@@ -67,7 +66,7 @@ echo json_encode($data);
 
 
 
-function get_cluster($db, $cluster_id, $alignment_score) {
+function get_cluster($db, $cluster_id, $alignment_score, $version) {
     $data = array(
         "size" => array(
             "uniprot" => 0,
@@ -98,6 +97,7 @@ function get_cluster($db, $cluster_id, $alignment_score) {
             "children" => array(),
         ),
         "alt_ssn" => array(),
+        "dir" => "",
     );
 
     $info = get_network_info($db, $cluster_id);
@@ -116,8 +116,19 @@ function get_cluster($db, $cluster_id, $alignment_score) {
     $data["dicing"]["parent"] = get_dicing_parent($db, $cluster_id);
     $data["dicing"]["children"] = get_dicing_children($db, $cluster_id);
     $data["alt_ssn"] = get_alt_ssns($db, $cluster_id);
+
+    $data["dir"] = functions::get_rel_data_dir_path($cluster_id, $version, $alignment_score);
     if ($alignment_score)
         $data["alignment_score"] = $alignment_score;
+//    $data["dir"] = settings::get_data_dir($version) . "/$cluster_id";
+//    if ($alignment_score) {
+//        $full_dir = functions::get_data_dir_path($cluster_id, $version, $alignment_score);
+//        $data["alignment_score"] = $alignment_score;
+//        $ascore_dir = $data["dir"] . "/dicing-$alignment_score";
+//        $full_dir = dirname(__FILE__) . "/$ascore_dir"; 
+//        if (file_exists($full_dir))
+//            $data["dir"] = $ascore_dir;
+//    }
 
     return $data;
 }

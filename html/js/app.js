@@ -208,19 +208,19 @@ App.prototype.addDisplayFeatures = function () {
         if (feat[i] == "weblogo") {
             //TESTING/DEBUGGING:
             //var img = $('<img src="data/weblogo.png" alt="WebLogo for ' + this.network.Id + '" class="display-img-width">');
-            var img = $('<img src="' + this.dataDir + '/' + this.network.Id + '/weblogo.png" alt="WebLogo for ' + this.network.Id + '" class="display-img-width">');
+            var img = $('<img src="' + this.dataDir + '/weblogo.png" alt="WebLogo for ' + this.network.Id + '" class="display-img-width">');
             $("#weblogo").append(img);
             $("#downloadWeblogoImage").click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("weblogo"); });
             $("#weblogoContainer").show();
         } else if (feat[i] == "length_histogram") {
             //TESTING/DEBUGGING:
             //var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
-            var img = $('<img src="' + this.dataDir + '/' + this.network.Id + '/length_histogram_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
+            var img = $('<img src="' + this.dataDir + '/length_histogram_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
             $("#fullLengthHistogram").append(img);
             $("#downloadFullLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist"); });
             //TESTING/DEBUGGING:
             //var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
-            var img = $('<img src="' + this.dataDir + '/' + this.network.Id + '/length_histogram_filtered_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
+            var img = $('<img src="' + this.dataDir + '/length_histogram_filtered_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
             $("#filteredLengthHistogram").append(img);
             $("#downloadFiltLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist_filt"); });
             $("#lengthHistogramContainer").show();
@@ -311,7 +311,7 @@ App.prototype.setClusterImage = function (onFinishFn) {
             ;//TODO:
         else
             img
-                .attr("src", this.dataDir + "/" + this.network.Id + "/" + fileName + "_sm.png")
+                .attr("src", this.dataDir + "/" + fileName + "_sm.png")
                 .on("load", function () { that.addClusterHotspots(img); that.progress.stop(); onFinishFn(); });
         $("#downloadClusterImage").click(function (e) {
             e.preventDefault();
@@ -668,7 +668,7 @@ App.prototype.getDownloadUrl = function(type) {
     var extPos = type.indexOf(".");
     if (extPos >= 0)
         type = type.substr(0, extPos);
-    //this.dataDir + "/" + that.network.Id + "/weblogo.png"
+    //this.dataDir + "/weblogo.png"
     var url = "download.php?c=" + this.network.Id + "&v=" + this.version + "&t=" + type;
     if (this.alignmentScore)
         url += "&as=" + this.alignmentScore;

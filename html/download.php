@@ -7,6 +7,7 @@ require(__DIR__ . "/../libs/functions.class.inc.php");
 $type = filter_input(INPUT_GET, "t", FILTER_SANITIZE_STRING);
 $cluster = filter_input(INPUT_GET, "c", FILTER_SANITIZE_STRING);
 $version = filter_input(INPUT_GET, "v", FILTER_SANITIZE_STRING);
+$ascore = filter_input(INPUT_GET, "as", FILTER_SANITIZE_NUMBER_INT);
 
 $type = filter_type($type);
 if (!is_array($type)) {
@@ -25,24 +26,23 @@ if (!functions::validate_cluster_id($db, $cluster)) {
 $version = functions::filter_version($version);
 
 
-$basepath = functions::get_data_dir_path($version);
-$cpath = "$basepath/$cluster";
+$basepath = functions::get_data_dir_path($cluster, $version, $ascore);
 $fpath = "";
 $fname = "";
 
 
-if ($type[0] == "ssn") {
-    $data = functions::get_ssn_path($db, $cluster);
-    if ($data) {
-        $fpath = $data["ssn"];
-        $fname = "${cluster}_ssn.zip";
-    }
-} else {
+//if ($type[0] == "ssn") {
+//    $data = functions::get_ssn_path($db, $cluster);
+//    if ($data) {
+//        $fpath = $data["ssn"];
+//        $fname = "${cluster}_ssn.zip";
+//    }
+//} else {
     $options = array("${cluster}_", "");
     foreach ($options as $prefix) {
         foreach ($type as $suffix) {
             $fname = "${prefix}${suffix}";
-            $file = "$cpath/$fname";
+            $file = "$basepath/$fname";
             if (file_exists($file)) {
                 $fpath = $file;
                 $fname = "${cluster}_$suffix";
@@ -52,7 +52,7 @@ if ($type[0] == "ssn") {
         if ($fpath)
             break;
     }
-}
+//}
 
 
 if (!$fpath) {
@@ -108,7 +108,7 @@ function filter_type($type) {
         "uniref50" => array("uniref50.txt", "uniref50.zip"),
         "uniref90" => array("uniref90.txt", "uniref90.zip"),
         "weblogo" => array("weblogo.png", "weblogo.zip"),
-        "ssn" => array("ssn"));
+        "ssn" => array("ssn.zip"));
     if (isset($types[$type]))
         return $types[$type];
     else

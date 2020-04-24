@@ -17,10 +17,21 @@ class functions {
         }
         return $db;
     }
-    public static function get_data_dir_path($version = "") {
+    public static function get_data_dir_path($cluster = "", $version = "", $ascore = "") {
+        $rel_dir = functions::get_rel_data_dir_path($cluster, $version, $ascore);
+        $path = dirname(__FILE__) . "/../html";
+        $path = "$path/$rel_dir";
+        return $path;
+    }
+    public static function get_rel_data_dir_path($cluster = "", $version = "", $ascore = "") {
         $dir = settings::get_data_dir($version);
-        $path = getcwd();
-        return "$path/$dir";
+        if (preg_match("/^[a-z0-9\-]+$/", $cluster)) {
+            $dir = "$dir/$cluster";
+            if (is_numeric($ascore)) {
+                $dir = "$dir/dicing-$ascore";
+            }
+        }
+        return $dir;
     }
     public static function validate_version($version) {
         return self::filter_version($version);
