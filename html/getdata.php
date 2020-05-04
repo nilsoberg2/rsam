@@ -14,13 +14,12 @@ $db = functions::get_database($version);
 //
 $action = filter_input(INPUT_GET, "a", FILTER_SANITIZE_STRING);
 $cluster_id = filter_input(INPUT_GET, "cid", FILTER_SANITIZE_STRING);
-$alignment_score = filter_input(INPUT_GET, "as", FILTER_SANITIZE_NUMBER_INT);
+$ascore = filter_input(INPUT_GET, "as", FILTER_SANITIZE_NUMBER_INT);
 
 if (!validate_action($action) || ($cluster_id && !functions::validate_cluster_id($db, $cluster_id))) {
     echo json_encode(array("valid" => false, "message" => "Invalid request."));
     exit(0);
 }
-
 
 
 $data = array("valid" => true, "message" => "");
@@ -34,7 +33,7 @@ if ($action == "kegg") {
         $data["kegg"] = $kegg;
     }
 } else if ($action == "cluster") {
-    $cluster = get_cluster($db, $cluster_id, $alignment_score, $version);
+    $cluster = get_cluster($db, $cluster_id, $ascore, $version);
     if ($cluster === false) {
         $data["valid"] = false;
         $data["message"] = "Cluster error.";
@@ -66,7 +65,7 @@ echo json_encode($data);
 
 
 
-function get_cluster($db, $cluster_id, $alignment_score, $version) {
+function get_cluster($db, $cluster_id, $ascore, $version) {
     $data = array(
         "size" => array(
             "uniprot" => 0,
@@ -100,6 +99,17 @@ function get_cluster($db, $cluster_id, $alignment_score, $version) {
         "dir" => "",
     );
 
+    $data["dicing"]["parent"] = get_dicing_parent($db, $cluster_id);
+    $data["dicing"]["children"] = get_dicing_children($db, $cluster_id);
+    $parent_cluster_id = $data["dicing"]["parent"];
+    $child_cluster_id = "";
+    $is_child = $parent_cluster_id ? true : false;
+    if ($is_child) {
+        $child_cluster_id = $cluster_id;
+    } else {
+        $parent_cluster_id = $cluster_id;
+    }
+
     $info = get_network_info($db, $cluster_id);
     $data["name"] = $info["name"];
     $data["title"] = $info["title"];
@@ -110,21 +120,19 @@ function get_cluster($db, $cluster_id, $alignment_score, $version) {
     $data["public"]["swissprot"] = get_swissprot($db, $cluster_id);
     $data["public"]["pdb"] = get_pdb($db, $cluster_id);
     $data["families"]["tigr"] = get_tigr($db, $cluster_id);
-    $data["display"] = get_display($db, $cluster_id);
-    $data["download"] = get_download($db, $cluster_id);
+    $data["display"] = get_display($db, $parent_cluster_id, $version, $ascore, $child_cluster_id);
+    $data["download"] = get_download($db, $parent_cluster_id, $version, $ascore, $child_cluster_id);
     $data["regions"] = get_regions($db, $cluster_id);
-    $data["dicing"]["parent"] = get_dicing_parent($db, $cluster_id);
-    $data["dicing"]["children"] = get_dicing_children($db, $cluster_id);
     $data["alt_ssn"] = get_alt_ssns($db, $cluster_id);
 
-    $data["dir"] = functions::get_rel_data_dir_path($cluster_id, $version, $alignment_score);
-    if ($alignment_score)
-        $data["alignment_score"] = $alignment_score;
+    $data["dir"] = functions::get_rel_data_dir_path($parent_cluster_id, $version, $ascore, $child_cluster_id);
+    if ($ascore)
+        $data["alignment_score"] = $ascore;
 //    $data["dir"] = settings::get_data_dir($version) . "/$cluster_id";
-//    if ($alignment_score) {
-//        $full_dir = functions::get_data_dir_path($cluster_id, $version, $alignment_score);
-//        $data["alignment_score"] = $alignment_score;
-//        $ascore_dir = $data["dir"] . "/dicing-$alignment_score";
+//    if ($ascore) {
+//        $full_dir = functions::get_data_dir_path($cluster_id, $version, $ascore);
+//        $data["alignment_score"] = $ascore;
+//        $ascore_dir = $data["dir"] . "/dicing-$ascore";
 //        $full_dir = dirname(__FILE__) . "/$ascore_dir"; 
 //        if (file_exists($full_dir))
 //            $data["dir"] = $ascore_dir;
@@ -223,9 +231,9 @@ function get_sfld_desc($db) {
     return $data;
 }
 
-function get_display($db, $cluster_id) {
-    $basepath = functions::get_data_dir_path($version);
-    $cpath = "$basepath/$cluster_id";
+function get_display($db, $cluster_id, $version = "", $ascore = "", $child_id = "") {
+    $cpath = functions::get_data_dir_path($cluster_id, $version, $ascore, $child_id);
+    //$cpath = "$basepath/$cluster_id";
 
     $feat = array();
     if (file_exists("$cpath/weblogo.png"))
@@ -235,9 +243,9 @@ function get_display($db, $cluster_id) {
     return $feat;
 }
 
-function get_download($db, $cluster_id) {
-    $basepath = functions::get_data_dir_path($version);
-    $cpath = "$basepath/$cluster_id";
+function get_download($db, $cluster_id, $version = "", $ascore = "", $child_id = "") {
+    $cpath = functions::get_data_dir_path($cluster_id, $version, $ascore, $child_id);
+    //$cpath = "$basepath/$cluster_id";
 
     $feat = array();
 
@@ -260,26 +268,28 @@ function get_download($db, $cluster_id) {
 }
 
 function get_generic_fetch($db, $cluster_id, $sql, $handle_row_fn, $check_only = false) {
-    $sth = $db->prepare($sql);
-    if (!$sth)
-        return $check_only ? 0 : array();
-    $sth->bindValue("id", $cluster_id);
-    $sth->execute();
-    $data = array();
-    while ($row = $sth->fetch()) {
-        if ($check_only)
-            return $handle_row_fn($row);
-        array_push($data, $handle_row_fn($row));
-    }
-    return $check_only ? 0 : $data;
+    return functions::get_generic_fetch($db, $cluster_id, $sql, $handle_row_fn, $check_only);
+    //$sth = $db->prepare($sql);
+    //if (!$sth)
+    //    return $check_only ? 0 : array();
+    //$sth->bindValue("id", $cluster_id);
+    //$sth->execute();
+    //$data = array();
+    //while ($row = $sth->fetch()) {
+    //    if ($check_only)
+    //        return $handle_row_fn($row);
+    //    array_push($data, $handle_row_fn($row));
+    //}
+    //return $check_only ? 0 : $data;
 }
 
 function get_generic_sql($table, $parm, $extra_where = "", $check_only = false) {
-    if ($check_only)
-        $sql = "SELECT COUNT(*) AS $parm FROM $table WHERE cluster_id = :id $extra_where";
-    else
-        $sql = "SELECT $parm FROM $table WHERE cluster_id = :id $extra_where";
-    return $sql;
+    return functions::get_generic_sql($table, $parm, $extra_where, $check_only);
+    //if ($check_only)
+    //    $sql = "SELECT COUNT(*) AS $parm FROM $table WHERE cluster_id = :id $extra_where";
+    //else
+    //    $sql = "SELECT $parm FROM $table WHERE cluster_id = :id $extra_where";
+    //return $sql;
 }
 
 function get_kegg($db, $cluster_id, $check_only = false) {

@@ -35,50 +35,70 @@ if ($type == "seq") {
     $seq_file = "$out_dir/sequence.txt";
     file_put_contents($seq_file, $seq);
 
+    $hmmdb = settings::get_hmmdb_path($version, "all");
+    $matches = hmmscan($out_dir, $hmmdb[0], $seq_file);
+    //$matches = array();
 
-    $hmmscan = settings::get_hmmscan_path();
-    $hmmdb = settings::get_hmmdb_path($version);
-    $out_path = "$out_dir/output.txt";
-    $table_path = "$out_dir/results.txt";
-
-    $cmd = "$hmmscan -o $out_path --tblout $table_path $hmmdb $seq_file";
-    $cmd_output = "";
-    $cmd_results = 0;
-    exec($cmd, $cmd_output, $cmd_result);
-
-    if ($cmd_result !== 0) {
-        print json_encode(array("status" => false, "message" => "An error occurred"));
-        exit(0);
+    $diced_db = settings::get_hmmdb_path($version, "diced");
+    $diced = false;
+    $dmatches = array();
+    if (count($diced_db) > 0) {
+        // Check first dicing of each cluster
+        $first = true;
+        foreach ($diced_db as $parent_cluster => $dicings) {
+            foreach ($dicings as $info) {
+                $ascore = $info[0];
+                $hmm = $info[1];
+                $diced_matches = hmmscan($out_dir, $hmm, $seq_file);
+                // Skip to next cluster group, no need to cycle through all of the dicings since if it's not in one dicing it's not going to be in the others
+                if (count($diced_matches) == 0)
+                    break;
+                // If both have matches, we compare evalues to find out which is a better match.
+                // Lower is better.
+                //if ($first && count($matches) > 0 && $diced_matches[0][1] <= $matches[0][1]) {
+                //} else if ( || $has_match) {
+                    if ($first) {
+                        //$matches = array();
+                        $first = false;
+                        $diced = true;
+                        $has_match = true;
+                    }
+                    $dmatches[$parent_cluster][$ascore] = $diced_matches;
+                //}
+            }
+            // If one of the clusters matched, don't bother checking the others
+            if ($diced)
+                break;
+        }
     }
 
-    $lines = file($table_path);
-
-    $matches = array();
-
-    for ($i = 0; $i < count($lines); $i++) {
-        if (!strlen($lines[$i]) || $lines[$i][0] == "#")
-            continue;
-        $parts = preg_split("/\s+/", $lines[$i]);
-        if (count($parts) >= 5)
-            array_push($matches, array($parts[0], $parts[4]));
-    }
-
-    print json_encode(array("status" => true, "matches" => $matches));
+    print json_encode(array("status" => true, "matches" => $matches, "diced_matches" => $dmatches));
 } else if ($type == "id") {
 
     $file = settings::get_cluster_db_path($version);
     $db = new SQLite3($file);
     $id = $db->escapeString($query);
-    $sql = "SELECT cluster_id FROM id_mapping WHERE uniprot_id = '$id'";
-    $results = $db->query($sql);
-    $cluster_id = "";
+
+    // First check if this is in the diced clusters.
+    $ascore_sql = "SELECT cluster_id, alignment_score FROM id_mapping_diced WHERE uniprot_id = '$id'";
+    $results = $db->query($ascore_sql);
+    $cluster_id = array();
     while ($row = $results->fetchArray()) {
-        // Want bottom-level cluster
-        if (strlen($row["cluster_id"]) > $cluster_id)
-            $cluster_id = $row["cluster_id"];
+        $cluster_id[$row["alignment_score"]] = $row["cluster_id"];
     }
 
-    if ($cluster_id)
+    if (count($cluster_id) == 0) {
+        $cluster_id = "";
+        $sql = "SELECT cluster_id FROM id_mapping WHERE uniprot_id = '$id'";
+        $results = $db->query($sql);
+        while ($row = $results->fetchArray()) {
+            // Want bottom-level cluster
+            if (strlen($row["cluster_id"]) > $cluster_id)
+                $cluster_id = $row["cluster_id"];
+        }
+    }
+
+    if ((is_array($cluster_id) && count($cluster_id) > 0) || (!is_array($cluster_id) && $cluster_id))
         print json_encode(array("status" => true, "cluster_id" => $cluster_id));
     else
         print json_encode(array("status" => false, "message" => "ID not found"));
@@ -154,6 +174,41 @@ if ($type == "seq") {
     }
 
     print json_encode($data);
+}
+
+
+
+
+function hmmscan($out_dir, $hmmdb, $seq_file) {
+    $hmmscan = settings::get_hmmscan_path();
+    $out_path = "$out_dir/output.txt";
+    $table_path = "$out_dir/results.txt";
+
+    $cmd = "$hmmscan -o $out_path --tblout $table_path $hmmdb $seq_file";
+    $cmd_output = "";
+    $cmd_results = 0;
+    exec($cmd, $cmd_output, $cmd_result);
+
+    if ($cmd_result !== 0) {
+        print json_encode(array("status" => false, "message" => "An error occurred"));
+        exit(0);
+    }
+
+    $lines = file($table_path);
+
+    $matches = array();
+
+    for ($i = 0; $i < min(count($lines), 10); $i++) {
+        if (!strlen($lines[$i]) || $lines[$i][0] == "#")
+            continue;
+        $parts = preg_split("/\s+/", $lines[$i]);
+        if (count($parts) >= 5) {
+            $evalue = floatval($parts[4]);
+            if ($evalue < 1e-10)
+                array_push($matches, array($parts[0], $parts[4]));
+        }
+    }
+    return $matches;
 }
 
 

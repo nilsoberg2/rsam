@@ -135,7 +135,43 @@ App.prototype.initLeafData = function() {
     }
     $("#submitAnnoLink").attr("href", $("#submitAnnoLink").attr("href") + "?id=" + this.network.Id);
 }
-App.prototype.initChildren = function() {
+App.prototype.initTabPages = function() {
+    var that = this;
+    var showFn = function() {
+        var clusterTableDiv = $('<div id="clusterTable"></div>');
+        that.addSubgroupTable(clusterTableDiv);
+        $("#subgroupTable").append(clusterTableDiv);
+    };
+
+    var kids = this.network.getDicedChildren();
+    if (kids.length > 0) {
+        $("#dicingInfo").show();
+        var menu = $('<select class="form-control w-25"></select>');
+        for (var i = 0; i < kids.length; i++) {
+            menu.append($('<option></option>').attr("value", kids[i]).text(kids[i]));
+        }
+        menu.val("");
+        menu.change(function() {
+            var id = $(this).val();
+            goToUrlFn(id, that.version);
+        });
+        $("#subgroupTable").append(menu);
+        //var showBtnFn = function() {
+        //    showFn();
+        //    applyRowClickableFn();
+        //    $("#showSubgroupTableDiv").hide();
+        //};
+        //var btn = $('<button class="btn btn-primary btn-sm">Show All Clusters</button>');
+        //btn.click(showBtnFn);
+        //var btnDiv = $('<div id="showSubgroupTableDiv"></div>').append(btn);
+        //$("#subgroupTable").append(btnDiv);
+    } else {
+        showFn();
+    }
+
+    $("#subgroupTable").show();
+}
+App.prototype.initChildrenOld = function() {
     var that = this;
     var showFn = function() {
         var clusterTableDiv = $('<div id="clusterTable"></div>');
@@ -256,12 +292,12 @@ App.prototype.addDownloadFeatures = function () {
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".hmm") + '</td><td>HMM for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         } else if (feat[i] == "id_fasta") {
             var t = [
-                { "key": "uniprot.txt", "desc": "UniProt ID list" },
-                { "key": "uniref90.txt", "desc": "UniRef90 ID list" },
-                { "key": "uniref50.txt", "desc": "UniRef50 ID list" },
-                { "key": "uniprot.fasta", "desc": "UniProt FASTA file" },
-                { "key": "uniref90.fasta", "desc": "UniRef90 FASTA file" },
-                { "key": "uniref50.fasta", "desc": "UniRef50 FASTA file" }
+                { "key": "uniprot_id", "desc": "UniProt ID list" },
+                { "key": "uniref90_id", "desc": "UniRef90 ID list" },
+                { "key": "uniref50_id", "desc": "UniRef50 ID list" },
+                { "key": "uniprot_fasta", "desc": "UniProt FASTA file" },
+                { "key": "uniref90_fasta", "desc": "UniRef90 FASTA file" },
+                { "key": "uniref50_fasta", "desc": "UniRef50 FASTA file" }
             ];
 
             table.append('<tbody><tr><td colspan="3"><b>ID Lists and FASTA Files</b></td></tr></tbody>');
@@ -681,20 +717,6 @@ function copyToClipboard(id) {
 }
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// PROGRESS UI
-//
-function Progress(progressDiv) {
-    this.progress = progressDiv;
-}
-Progress.prototype.start = function() {
-    this.progress.show();
-}
-Progress.prototype.stop = function() {
-    this.progress.hide();
 }
 
 

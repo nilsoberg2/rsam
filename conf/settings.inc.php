@@ -7,7 +7,7 @@ define("SF_HMMSCAN","LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:/home/apps/software/GSL/2
 define("SF_HMMDB","/private_stores/gerlt/radicalsam/data/rsam-2.0/all.hmm");
 define("SF_HMMDB_V1","/private_stores/gerlt/radicalsam/data/rsam-1.0/all.hmm");
 define("SF_HMMDB_V2","/private_stores/gerlt/radicalsam/data/rsam-2.0/all.hmm");
-define("SF_HMMDB_V2_1","/private_stores/gerlt/radicalsam/data/rsam-2.1/all.hmm");
+define("SF_HMMDB_V2_1","/private_stores/gerlt/radicalsam/data/rsam-2.1");
 //define("SF_HMMDB","/private_stores/gerlt/radicalsam/data/rsam-1.0/all.hmm");
 //define("SF_CLUSTERDB","/private_stores/gerlt/radicalsam/data/rsam-2.0/data.sqlite");
 define("SF_CLUSTERDB","/private_stores/gerlt/radicalsam/data/rsam-2.0/data.sqlite");

@@ -52,7 +52,7 @@
                         <br><br>
                         The IDs can be used as the input for Option D of EFI-EST to
                         generate sequence similarity networks (SSNs).  The SSNs are
-                        used for exploring sequence-function space and, 3also as
+                        used for exploring sequence-function space and, also as
                         input, to discover genome context using EFI-GNT and human
                         microbiome metagenome abundance using EFI-CGFP.  In
                         contrast to the SSN for the entire, extremely large RSS,
@@ -87,9 +87,9 @@
                         <h5>Radical SAM superfamily (RSS) and its subgroups</h5>
 
                         <p>
-                        The RSS is arguably the largest and most functionally diverse enzyme superfamily.  As of January 1, 2020, the RSS
-                        included 550,775 sequences (InterPro families IPR007197 and IPR006638 from Release 77 of the InterPro
-                        database/Release 2019_10 of the UniProt database).
+                        The RSS is arguably the largest and most functionally diverse enzyme superfamily.  As of February 2020, the RSS
+                        included 540,320 sequences (InterPro families IPR007197 and IPR006638 from Release 78 of the InterPro
+                        database/Release 2020_01 of the UniProt database).
                         </p>
 
                         <p>
@@ -126,7 +126,7 @@
                         </p>
                         
                         <p>
-                        We provide a web resource with three “democratized” genomic enzymology tools 
+                        We provide a web resource with three "democratized" genomic enzymology tools 
                         (<a href="https://efi.igb.illinois.edu/">https://efi.igb.illinois.edu/</a>; doi: <a href="http://dx.doi.org/10.1021/acs.biochem.9b00735">10.1021/acs.biochem.9b00735</a>)
                         The tools are used to 1) explore sequence-function space in protein families using SSNs (generated with EFI-EST),
                         2) explore genome neighborhoods for clues about functions of uncharacterized enzymes (collected with EFI-GNT), and 
@@ -152,7 +152,16 @@
                     </div>
                     <div class="tab-pane fade" id="subgroups" role="tabpanel" aria-labelledby="tab-subgroups">
                         <h5>Identification of RSS subgroups</h5>
-                        
+
+                        <p class="font-weight-bold">
+                        The size of the RSS requires a large-scale strategy for identifying subgroups with related 
+                        functions, e.g., the segregation of the SSN as described in this section.  Given the large 
+                        numbers of both starting sequences and clusters that are identified, we cannot guarantee 
+                        that the segregation is "perfect".  Indeed, we expect that it is not.   However, the 
+                        identified clusters provide manageable starting points for the discovery of novel functions 
+                        using EFI-EST, EFI-GNT, and EFI-CGFP.
+                        </p>
+
                         <p>
                         Following the strategy used by the SFLD, we segregated the SSN for the RSS into 
                         clusters, some SFLD-curated subgroups and others containing uncharacterized sequences.
@@ -160,19 +169,19 @@
 
                         <p>
                         We generated the reference SSN for RadicalSAM.org using the 44,060 UniRef50 IDs with 
-                        UniProt-defined “complete” sequences in families IPR007197 and IP006638 as defined 
+                        UniProt-defined "complete" sequences in families IPR007197 and IP006638 as defined 
                         by InterPro 78 (based on UniProt 2020_01).  
                         </p>
 
                         <p>
-                        [According to UniProt, a “complete” sequence is encoded by a genomic sequence with 
-                        both a start and stop codon; “fragments” are encoded by a genomic sequence missing 
-                        one or both.  However, the “complete” sequences are not necessarily “full-length” 
+                        [According to UniProt, a "complete" sequence is encoded by a genomic sequence with 
+                        both a start and stop codon; "fragments" are encoded by a genomic sequence missing 
+                        one or both.  However, the "complete" sequences are not necessarily "full-length" 
                         functional proteins:  e.g., sequencing errors produce incorrect start/stop codons; 
                         also, a coding sequence at the end of a sequencing read may not include a start or 
-                        stop codon.  Many “incomplete” proteins can be removed from an SSN using a minimum 
-                        length filter, although “incomplete” proteins that exceed the minimum length filter 
-                        will not be removed.  The “incomplete” proteins can influence the quality of a 
+                        stop codon.  Many "incomplete" proteins can be removed from an SSN using a minimum 
+                        length filter, although "incomplete" proteins that exceed the minimum length filter 
+                        will not be removed.  The "incomplete" proteins can influence the quality of a 
                         multiple sequence alignment, reducing the apparent percent conservation of conserved 
                         residues and the utility of the hidden Markov model (HMM) generated from the MSA.]
                         </p>
@@ -239,8 +248,8 @@
                         </p>
 
                         <p>
-                        The clusters containing the SFLD subgroups were separated by manual deletion of “long” SSN edges 
-                        (“remote” sequence relationships).   This editing is subjective, but we know of no other 
+                        The clusters containing the SFLD subgroups were separated by manual deletion of "long" SSN edges 
+                        ("remote" sequence relationships).   This editing is subjective, but we know of no other 
                         practical strategy to separate the subgroups.  That 1) the nodes associated with the various 
                         subgroups colocalize in the starting SSN and 2) their colocalization is maintained in the 
                         editing supports the validity of this approach.  
@@ -259,8 +268,8 @@
                         </p>
 
                         <p>
-                        The resulting SSN contained 15 clusters, including five “megaclusters” containing multiple SFLD 
-                        subgroups.
+                        The resulting SSN contained 15 clusters, including five "megaclusters" containing multiple SFLD 
+                        subgroups [(mega)clusters are numbered in order of decreasing number of UniRef50 IDs/nodes].
                         </p>
 
                         <p class="text-center">
@@ -268,14 +277,14 @@
                         </p>
 
                         <p>
-                        Four megaclusters (megacluster-2, -3, -4, and -6; <i>vide infra</i>) were segregated into component 
+                        Megaclusters -2, -3, -4, and -6 were segregated into component 
                         clusters/subgroups using SSNs generated with larger minimum alignment score thresholds to draw 
-                        edges and manual removal of “long” edges.  
+                        edges and manual removal of "long" edges.  
                         </p>
 
                         <p>
                         The SSN for megacluster-2 was generated with an alignment score of 15 (increase from the initial 
-                        alignment score of 11); the “long” edges were deleted to segregate the clusters/subgroups.
+                        alignment score of 11); the "long" edges were deleted to segregate the clusters/subgroups.
                         </p>
 
                         <p class="text-center">
@@ -322,7 +331,19 @@
                         </p>
 
                         <p>
-                        The <a href="explore.html">Explore</a> page provides a portal to these clusters and subgroups.  The page for each 
+                        Where indicated on the Explore pages for Megaclusters-2, -3, and -4, several of the clusters were
+                        further segregated into subclusters so that different SwissProt functions and/or distinct Cys
+                        motifs are located in distinct subclusters. 
+                        </p>
+
+                        <p>
+                        The <a href="explore.html">Explore</a> page provides a portal to these clusters and subgroups.
+                        When multiple (mega)clusters are present in the figure at the top of each page, hovering over
+                        and clicking on the cluster will open the page for the cluster.
+                        </p>
+
+                        <p>
+                        The page for each 
                         cluster/subgroup (both characterized and uncharacterized functions) provides several types of 
                         descriptive information that can be viewed and downloaded:  clusters sizes (numbers of UniProt, 
                         UniRef90, and UniRef50 IDs), length histograms (all UniProt IDs and UniRef50 IDs used to 
@@ -339,9 +360,9 @@
                         </p>
 
                         <p>
-                        The “Search” page (<i>vide infra</i>) is used to search the clusters for a user-supplied accession ID 
-                        (“Find by UniProt ID”), a user-supplied sequence (“Find by Sequence”), or a user-supplied 
-                        organism (genus/species/strain; “Find by Taxonomy”).
+                        The <a href="search.html">Search</a> page is used to search the clusters for a user-supplied accession ID 
+                        ("Find by UniProt ID"), a user-supplied sequence ("Find by Sequence"), or a user-supplied 
+                        organism (genus/species/strain; "Find by Taxonomy").
                         </p>
                     </div>
                     <div class="tab-pane fade" id="b12spasm" role="tabpanel" aria-labelledby="tab-b12spasm">
@@ -350,26 +371,30 @@
                         <p>
                         Sequence-function space in both SFLD subgroup 5, B12-binding domain (blue nodes in the SSN), and 
                         SFLD subgroup 17, SPASM/Twitch domain-containing (magenta nodes in the SSN), is too diverse for 
-                        an HMM-based approach for sequence updates (see “Updates” tab).  As a result, the sequences in 
+                        an automated HMM-based approach for sequence updates (see "Updates" tab).  As a result, the sequences in 
                         these subgroups are updated manually.  
                         </p>
 
                         <p>
-                        The SSN for the RSS is generated for each InterPro release; the component clusters/subgroups are 
-                        identified by manual editing of edges as described for the InterPro 78 reference SSN.  
+                        The SSN for the RSS is generated for each InterPro release; Subgroup 5 and Subgroup 7 are 
+                        identified by manual editing of edges in the SSN for the RSS as described in the Subgroups tab.
+                        </p>
+
+                        <h5 class="text-center">Subgroup 5, B12-binding domain</h5>
+
+                        <p>
+                        All of the sequences in megacluster-2-1 are designated as belonging to Subgroup 5, although we have noted that some 
+                        sequences/clusters do not contain a B12-binding domain (PF02310).  Clusters that lack the B12-binding 
+                        domain obtained by segregation of this cluster with larger alignments scores can be 
+                        identified by inspection of the WebLogos (<i>vide infra</i>).
                         </p>
 
                         <p>
-                        The sequences in megacluster-2-1 are used for subgroup-5, although we have noted that some 
-                        sequences/clusters do not contain a B12-binding domain.  Clusters that lack the B12-binding 
-                        domain obtained by segregation of this cluster with larger alignments scores (vide infra) can be 
-                        identified by inspection of the WebLogos provided by RadicalSAM.org.
-                        </p>
-
-                        <p>
-                        The SSN for subgroup-5, B12-binding domain, was segregated using an alignment score of 75.  The 
-                        Color SSN was generated; the WebLogo, MSA and HMM for each cluster that contains at least three 
-                        UniRef50 IDS were also generated.  
+                        The SSN for megacluster-2-1 was segregated using a series of alignment scores, from 35 to 
+                        75 in increments of 10  The Color SSNs were generated; the WebLogo, MSA and HMM for each 
+                        cluster that contains at least three UniRef50 IDS were also generated.   The figures show 
+                        the SSN for megacluster-2-1 generated with an alignment score of 15 and the Color SSN 
+                        generated using an alignment score of 75.
                         </p>
 
                         <p class="text-center">
@@ -378,16 +403,53 @@
                         </p>
 
                         <p>
-                        To identify the sequences in subgroup-17 (megacluster-1-1), the sequences in subgroup-14 
-                        (methyltransferase D, megacluster-1-2), subgroup-10 (FeMo-cofactor megacluster-1-3), subgroup-3 
-                        (viperin, megacluster-1-4), and subgroup-7 (DesII-like, megacluster-1-5) are removed from 
-                        megacluster-1 using the HMMs generated for InterPro 78 to identify the small subgroups.
+                        The Explore page for megacluster-2-1 begins with an image of the SSN generated with an 
+                        alignment score of 15 followed by links to pages for the series of five Color SSNs 
+                        (alignment scores 35, 45, 55 65, and 75) followed by downloads for accession IDs and FASTA 
+                        files for the UniProt, UniRef90, and UniRef50 IDs in the megacluster.
                         </p>
 
                         <p>
-                        The SSN for subgroup-17 SPASM/Twitch domain-containing, was segregated using an alignment score 
-                        of 55.  The Color SSN was generated; the WebLogo, MSA and HMM for each cluster that contains at 
-                        least three UniRef50 IDS were also generated.  
+                        The Explore page for each Color SSN begins with an image of the SSN followed by several tabs:  
+                        1) "Data File Download" for the Color SSN, the accession IDs and FASTA sequences for each 
+                        cluster in the SSN, and the number of sequences and Swissprot annotations in each cluster; 
+                        2) "WebLogos" for displaying/downloading the WebLogo and MSA for each cluster; 3) 
+                        "Consensus Residues" for the positions of the conserved Cys residues in each cluster; 4) 
+                        "HMMs" for the HMM for displaying/downloading the HMM for each cluster; and 5) "Length 
+                        Histograms" for the length histograms (UniProt, UniRef90, and UniRef50 IDs) for each cluster.
+                        </p>
+
+                        <p>
+                        These pages allow the user to peruse the clusters in subgroup 5 as they emerge as discrete clusters
+                        and, also, their intercluster relationships prior to separation.
+                        </p>
+
+                        <h5 class="text-center">Subgroup 17, SPASM/Twitch domain</h5>
+
+                        <p>
+                        The sequences in subgroup-17 (megacluster-1-1) are identified by removing the sequences in 
+                        subgroup-14 (methyltransferase D, megacluster-1-2), subgroup-10 (FeMo-cofactor 
+                        megacluster-1-3), subgroup-3 (viperin, megacluster-1-4), and subgroup-7 (DesII-like, 
+                        megacluster-1-5) from megacluster-1 using the HMMs generated using the IP78 database.  
+                        These subgroups were identified in distinct clusters in the SSN of megacluster-1 generated 
+                        with an alignment score of 40 using their SwissProt curations.  
+                        </p>
+
+                        <p>
+                        As noted for subgroup-5, clusters that lack a C-terminal Cys-motif containing domain can be 
+                        identified by inspection of the WebLogos (<i>vide infra</i>).  And, although subgroup-17 has been 
+                        designed as SPASM/Twitch domain-containing (PF13186 and IPR023885), clusters within 
+                        subgroup-17 contain contain a wide variety of Cys-rich motifs, ranging in number from 1 to 
+                        &gt;14 Cys residues (the paradigm SPASM domain contains 7 Cys residues for two Fe4S4 clusters; 
+                        the paradigm Twitch domain contains 3 Cys for one Fe4S4 cluster.<sup>1</sup>
+                        </p>
+
+                        <p>
+                        The SSN for megacluster-1-1 was segregated using a series of alignment scores, from 20 to 
+                        60 in increments of 10  The Color SSNs were generated; the WebLogo, MSA and HMM for each 
+                        cluster that contains at least three UniRef50 IDS were also generated.   The figures show 
+                        the SSN for megacluster-2-1 generated with an alignment score of 15 and the Color SSN 
+                        generated using an alignment score of 75.
                         </p>
 
                         <p class="text-center">
@@ -396,25 +458,39 @@
                         </p>
 
                         <p>
-                        The <a href="explore.html">Explore</a> page provides a portal to these clusters.  The user can explore the clusters (with 
-                        &ge;3 nodes/UniRef50 IDs) in the Color SSNs:  length histograms (all UniProt IDs and UniRef50 IDs 
-                        used to construct the MSAs and HMMs), WebLogo and multiple sequence alignment (MSA; can be 
-                        viewed with Jalview that is available for download from <a href="https://www.jalview.org/">https://www.jalview.org/</a>), and HMM (can 
-                        be viewed interactively using Skylign at <a href="https://skylign.org/">https://skylign.org/</a>).  Files are available for 
-                        download that provide the clusters sizes (numbers of UniProt, UniRef90, and UniRef50 IDs), 
-                        SwissProt functions, KEGG-annotated sequence IDs, PDB structures, TIGRFAM families, and 
-                        community annotations not included in SwissProt.
+                        The Explore page for megacluster-1-1 begins with an image of the SSN generated with an 
+                        alignment score of 11 followed by links to pages for the series of five Color SSNs 
+                        (alignment scores 20, 30, 40, 50, and 60) followed by downloads for accession IDs and FASTA 
+                        files for the UniProt, UniRef90, and UniRef50 IDs in the megacluster.
                         </p>
 
                         <p>
-                        Files that contain the UniProt, UniRef90, and UniRef50 IDs as well as FASTA sequences for the 
-                        clusters can be downloaded.  The IDs can be used with Option D of EFI-EST to generate SSNs.
+                        The Explore page for each Color SSN begins with an image of the SSN followed several tabs:  
+                        1) "Data File Download" for the Color SSN, the accession IDs and FASTA sequences for each 
+                        cluster in the SSN, and the number of sequences and Swissprot annotations in each cluster; 
+                        2) "WebLogos" for displaying/downloading the WebLogo and MSA for each cluster; 3) 
+                        "Consensus Residues" for the positions of the conserved Cys residues in each cluster; 4) 
+                        "HMMs" for the HMM for displaying/downloading the HMM for each cluster; and 5) "Length 
+                        Histograms" for the length histograms (UniProt, UniRef90, and UniRef50 IDs) for each cluster.
                         </p>
 
                         <p>
-                        For these two subgroups, the “<a href="search.html">Search</a>” functions identify the Color SSN cluster in which 
-                        user-specified accession IDs (“Find by UniProt ID”) or sequences (“Find by Sequence”) are 
-                        located.  
+                        These pages allow the user to peruse the clusters in subgroup 17 as they emerge as discrete
+                        clusters and, also, their intercluster relationships prior to separation.
+                        </p>
+
+                        <p>
+                        For these two subgroups, the Search functions identify the Color SSN cluster in which 
+                        user-specified accession IDs ("Find by UniProt ID") or sequences ("Find by Sequence") are 
+                        located.  The search results also provide links for the identified cluster to the various 
+                        downloads and files that are provided on the Explore pages for the Color SSNs.
+                        </p>
+
+                        <p>
+                        <sup>1</sup> 
+                        <a href="http://dx.doi.org/10.1074/jbc.R114.581249">doi: 10.1074/jbc.R114.581249</a><br>
+                        <a href="http://dx.doi.org/10.1016/j.bbamcr.2015.01.002">doi: 10.1016/j.bbamcr.2015.01.002</a><br>
+                        <a href="http://dx.doi.org/10.1074/jbc.RA118.005369">doi: 10.1074/jbc.RA118.005369</a><br>
                         </p>
 
                     </div>
@@ -423,61 +499,61 @@
                         
                         <p>
                         The <a href="search.html">Search</a> page provides the ability to search the RadicalSAM.org clusters for a user-supplied 
-                        accession ID (“Find by UniProt ID”), a user-supplied sequence (“Find by Sequence”), or a 
-                        user-supplied organism (genus/species/strain; “Find by Taxonomy”).
+                        accession ID ("Find by UniProt ID"), a user-supplied sequence ("Find by Sequence"), or a 
+                        user-supplied organism (genus/species/strain; "Find by Taxonomy").
                         </p>
 
                         <h6>Find by UniProt ID</h6>
 
                         <p>
-                        For all but subgroup 17, SPASM/Twitch domain and subgroup 5, B12-binding domain, the cluster 
-                        that contains the user-specified accession ID is identified; the cluster is a link to the page 
-                        that provides the information/downloads for the cluster.
+                        <u>For all but megacluster-1-1 (subgroup-17, SPASM/Twitch domain) and megacluster-2-1 
+                            (subgroup 5, B12-binding domain)</u>, the cluster that contains the user-specified accession ID 
+                        is identified; the identified cluster is a link to the Explore page that provides the 
+                        information/downloads for the cluster.
                         </p>
 
                         <p>
-                        For subgroup 17, SPASM/Twitch domain and subgroup 5, B12-binding domain, if the search 
-                        identifies a cluster (&ge;3 nodes/UniRef50 IDs) in the SSN for the subgroup containing the query, 
-                        the cluster number is provided.  The xgmml file for the Color SSN is available for download so 
-                        that the user can locate the cluster in the SSN.  
+                        <u>For megacluster-1-1 (subgroup-17, SPASM/Twitch domain) and megacluster-2-1 (subgroup 5, 
+                        B12-binding domain)</u>, the number of the cluster (≥3 nodes/UniRef50 IDs) in each Color SSN 
+                        for the subgroup containing the ID is provided.  For each Color SSN, the cluster size 
+                        (numbers of UniProt, UniRef90, and UniRef50 IDs), WebLogo and multiple sequence alignment 
+                        (MSA; can be viewed with Jalview that is available for download from 
+                        <a href="https://www.jalview.org/">https://www.jalview.org/</a>),
+                        locations of conserved Cys residues, HMM (can be viewed interactively using Skylign at
+                        <a href="https://skylign.org/">https://skylign.org/</a>), length histograms, and SwissProt 
+                        functions are provided.
                         </p>
 
                         <p>
-                        Files with the UniProt, UniRef90, and UniRef50 IDs as well as FASTA sequences also are available 
-                        for downloading.  The same information provided for the other clusters on their individual pages 
-                        also is available:  clusters sizes (numbers of UniProt, UniRef90, and UniRef50 IDs), length 
-                        histogram, WebLogo and multiple sequence alignment (MSA; can be viewed with Jalview that is 
-                        available for download from <a href="https://www.jalview.org/">https://www.jalview.org/</a>), HMM (can be viewed interactively using 
-                        Skylign at <a href="https://skylign.org/">https://skylign.org/</a>), SwissProt functions, KEGG-annotated sequence IDs, PDB 
-                        structures, TIGR families, taxonomy/species sunburst, and community annotations not included in 
-                        SwissProt.  
+                        Links for downloading the Color SSNs are also provided so that the user can locate the 
+                        ID/cluster in the SSNs. 
                         </p>
 
                         <h6>Find by Sequence</h6>
 
                         <p>
-                        For all but subgroup 17, SPASM/Twitch domain and subgroup 5, B12-binding domain, the sequence is 
-                        used to query the HMMs for the various clusters (using hmmscan) and provides a list of links to 
-                        the pages to top scoring clusters (E-values for the clusters are provided).
+                        The sequence is used to query the HMMs for the various clusters (using hmmscan) and 
+                        provides a list of links to the pages to top scoring clusters (E-values for the clusters 
+                        are provided).
                         </p>
 
                         <p>
-                        For subgroup 17, SPASM/Twitch domain and subgroup 5, B12-binding domain, the sequence is used to 
-                        query the sequences using BLAST.  If the search identifies a cluster (&ge;3 nodes/UniRef50 IDs) in 
-                        the Color SSN for the subgroup containing a match to the query; the cluster number is provided.  
-                        The xgmml file for the Color SSN for the subgroup is available for download so that the user can 
-                        locate the cluster in the SSN.  
+                        <u>For all but megacluster-1-1 (subgroup-17, SPASM/Twitch domain) and megacluster-2-1 
+                            (subgroup 5, B12-binding domain)</u>, the cluster that contains the user-specified accession ID 
+                        is identified; the identified cluster is a link to the Explore page that provides the 
+                        information/downloads for the cluster.
                         </p>
 
                         <p>
-                        Files with the UniProt, UniRef90, and UniRef50 IDs as well as FASTA sequences also are available 
-                        for downloading.  The same information provided for the other clusters on their individual pages 
-                        also is available:  clusters sizes (numbers of UniProt, UniRef90, and UniRef50 IDs), length 
-                        histogram, WebLogo and multiple sequence alignment (MSA; can be viewed with Jalview that is 
-                        available for download from https://www.jalview.org/), HMM (can be viewed interactively using 
-                        Skylign at https://skylign.org/), SwissProt functions, KEGG-annotated sequence IDs, PDB 
-                        structures, TIGR families, taxonomy/species sunburst, and community annotations not included in 
-                        SwissProt.  
+                        <u>For megacluster-1-1 (subgroup-17, SPASM/Twitch domain) and megacluster-2-1 (subgroup 5, 
+                            B12-binding domain)</u>, the number of the cluster (≥3 nodes/UniRef50 IDs) in each Color SSN 
+                        for the subgroup containing the ID is provided.  For each Color SSN, the cluster size 
+                        (numbers of UniProt, UniRef90, and UniRef50 IDs), WebLogo and multiple sequence alignment 
+                        (MSA; can be viewed with Jalview that is available for download from 
+                        <a href="https://www.jalview.org/">https://www.jalview.org/</a>),
+                        locations of conserved Cys residues, HMM (can be viewed interactively using Skylign at
+                        <a href="https://skylign.org/">https://skylign.org/</a>), length histograms, and SwissProt 
+                        functions are provided.
                         </p>
 
                         <h6>Find by Taxonomy</h6>
@@ -487,7 +563,7 @@
                         entered, a pop-up list of matching genus-species-strains is provided for selection of the 
                         desired genus/species/strain.  If the genus and species are entered, a pop-up list of matching 
                         genus-species-strains is provided for selection of the desired genus/species/strain.  When the 
-                        complete taxonomy is selected, clicking “Find Clusters” provides a list of clusters containing 
+                        complete taxonomy is selected, clicking "Find Clusters" provides a list of clusters containing 
                         proteins from the organism; the cluster is a link to the page for the cluster.
                         </p>
 
@@ -497,7 +573,7 @@
                         
                         <p>
                         With the exception of subgroup 5, B12-binding domain, and subgroup 17, SPASM/Twitch-domain 
-                        (<i>vide infra</i>), the sequences in the RadicalSAM.org clusters are updated with each release 
+                        (<i>vide infra</i>), the sequences in the RadicalSAM.org clusters will be updated with each release 
                         of the InterPro and UniProt databases (every 8 weeks) using HMMs that were generated from the 
                         UniRef50 IDs in the clusters in the reference SSN generated using InterPro 78.
                         </p>
@@ -506,10 +582,10 @@
                         A multiple sequence alignment (MSA) was generated for each cluster identified in the InterPro 78 
                         SSN using the sequences for the node UniRef50 IDs.  The sequences were length-filtered to 
                         include only full-length single domain proteins (from inspection the length histogram for all 
-                        UniProt IDs in the cluster); both short “incomplete” sequences that result from sequencing 
+                        UniProt IDs in the cluster); both short "incomplete" sequences that result from sequencing 
                         errors (vide supra) and multidomain proteins were excluded.  The length histograms for the 
                         complete set of UniProt IDs used to select the length filters and of the length-filtered 
-                        UniRef50 IDs used to generate the MSA are provided for each cluster/subgroup.  The MSA for the 
+                        UniRef50 IDs used to generate the MSA are provided for each subgroup.  The MSA for the 
                         full-length single domain proteins was generated using MUSCLE.  
                         </p>
 
@@ -535,7 +611,7 @@
                         sequences, i.e., the matches that are identified is determined by the value of e-value used with 
                         hmmsearch.  Therefore, the matches may include false positives; also, the database may include 
                         true positives that contain the signature CxxxCxxC motif for binding SAM but were not selected.  
-                        False positives can be identified as “outliers” in an SSN generated for the identified sequences.
+                        False positives can be identified as "outliers" in an SSN generated for the identified sequences.
                         </p>
 
                         <h6>What are HMMs?</h6>
@@ -548,13 +624,13 @@
                         Briefly, an HMM represents the consensus sequence for a set of homologous proteins by providing 
                         the probability of each amino acid residue and, when appropriate, insertion at each position.  
                         As described in the previous section, an HMM is generated using the hmmbuild utility in HMMER3 
-                        from an MSA constructed with the sequences of the UniRef50 IDs for the cluster/subgroup in the 
+                        from an MSA constructed with the sequences of the UniRef50 IDs for the cluster in the 
                         reference SSN. 
                         </p>
 
                         <p>
-                        The HMM is used to identify “hits” in the UniProt database using the hmmsearch utility in 
-                        HMMER3.  The threshold” for identifying a match is specified with a BLAST e-value chosen to 
+                        The HMM is used to identify "hits" in the UniProt database using the hmmsearch utility in 
+                        HMMER3.  The threshold" for identifying a match is specified with a BLAST e-value chosen to 
                         minimize false positives.  In practice, the e-values used for RadicalSAM.org were selected using 
                         the hmmsearch utility provided by EBI (<a href="https://www.ebi.ac.uk/Tools/hmmer/search/hmmsearch">https://www.ebi.ac.uk/Tools/hmmer/search/hmmsearch</a>) and 
                         the HMMs generated for the subgroups to reproduce the number of accession IDs that in the 
@@ -585,10 +661,10 @@
                         <p>
                         SwissProt annotations are incomplete and sometimes vague or incorrect; experimentally verified 
                         annotations provided by the community are expected to be both more reliable and precise.  On the 
-                        <a href="submit.html">Submit</a> page, we provide a “Community Annotation Submission” form for users to submit 
+                        <a href="submit.html">Submit</a> page, we provide a "Community Annotation Submission" form for users to submit 
                         experimentally determined functions as well as publications that document/describe these 
-                        functions.  After review, these will be  included on the subgroup/cluster pages using the “Pubs” 
-                        and “Anno” buttons.
+                        functions.  After review, these will be  included on the cluster pages using the "Pubs" 
+                        and "Anno" buttons.
                         </p>
                     </div>
                 </div>

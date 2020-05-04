@@ -113,7 +113,7 @@ Network.prototype.getDownloadFeatures = function () {
     return Array.isArray(this.data.download) ? this.data.download : [];
 }
 Network.prototype.getNetworkMapName = function (networkId) {
-    return typeof this.network_map[networkId] !== "undefined" ? this.network_map[networkId].name : "";
+    return typeof this.network_map[networkId] !== "undefined" ? this.network_map[networkId].name : networkId;
 }
 Network.prototype.getNetworkSfldTitle = function (networkId) {
     if (typeof this.network_map[networkId] !== "undefined" && typeof this.network_map[networkId].sfld_title !== "undefined")
