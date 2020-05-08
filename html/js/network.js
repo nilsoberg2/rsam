@@ -60,6 +60,9 @@ Network.prototype.getDicedChildren = function() {
 Network.prototype.getAltSsns = function() {
     return (typeof this.data.alt_ssn !== "undefined" && Array.isArray(this.data.alt_ssn)) ? this.data.alt_ssn : [];
 }
+Network.prototype.getConsensusResidues = function() {
+    return (typeof this.data.cons_res !== "undefined" && Array.isArray(this.data.cons_res)) ? this.data.cons_res : [];
+}
 Network.prototype.getDataDir = function() {
     return typeof this.dataDir !== "undefined" ? this.dataDir : "data";
 }

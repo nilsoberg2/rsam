@@ -25,14 +25,15 @@ if (!functions::validate_cluster_id($db, $cluster_id)) {
 }
 $version = functions::filter_version($version);
 
-$parent_cluster_id = get_dicing_parent($db, $cluster_id);
-$child_cluster_id = "";
-if ($parent_cluster_id) {
-    $child_cluster_id = $cluster_id;
-} else {
-    $parent_cluster_id = $cluster_id;
-}
-$basepath = functions::get_data_dir_path($parent_cluster_id, $version, $ascore, $child_cluster_id);
+//$parent_cluster_id = functions::get_dicing_parent($db, $cluster_id);
+//$child_cluster_id = "";
+//if ($parent_cluster_id) {
+//    $child_cluster_id = $cluster_id;
+//} else {
+//    $parent_cluster_id = $cluster_id;
+//}
+//$basepath = functions::get_data_dir_path($parent_cluster_id, $version, $ascore, $child_cluster_id);
+$basepath = functions::get_data_dir_path2($db, $version, $ascore, $cluster_id);
 $fpath = "";
 $fname = "";
 $ascore_prefix = $ascore ? "AS${ascore}_" : "";
@@ -105,9 +106,15 @@ function send_headers($filename, $filesize, $type = "application/octet-stream") 
 
 
 function filter_type($type) {
+    $RES = "";
+    if (startsWith($type, "cr")) {
+        $RES = strtoupper(substr($type, 4, 1)) . "_";
+        $type = substr($type, 0, 4);
+    }
     $types = array(
         "net" => array("lg.png"),
         "hmm" => array("hmm.hmm", "hmm.zip"),
+        "hmmpng" => array("hmm.png", "hmm.zip"),
         "hist" => array("length_histogram_lg.png"),
         "hist_filt" => array("length_histogram_filtered_lg.png"),
         "msa" => array("msa.afa", "msa.zip"),
@@ -118,6 +125,9 @@ function filter_type($type) {
         "uniref50_fasta" => array("uniref50.fasta", "uniref50.zip"),
         "uniref90_fasta" => array("uniref90.fasta", "uniref90.zip"),
         "weblogo" => array("weblogo.png", "weblogo.zip"),
+        "crpo" => array("consensus_residue_${RES}position.txt"),
+        "crpe" => array("consensus_residue_${RES}percentage.txt"),
+        "crid" => array("consensus_residue_${RES}all.zip"),
         "ssn" => array("ssn.zip"));
     if (isset($types[$type]))
         return $types[$type];
@@ -125,14 +135,7 @@ function filter_type($type) {
         return false;
 }
 
-
-function get_dicing_parent($db, $cluster_id) {
-    $sql = functions::get_generic_sql("dicing", "parent_id");
-    $row_fn = function($row) {
-        return $row["parent_id"];
-    };
-    $data = functions::get_generic_fetch($db, $cluster_id, $sql, $row_fn, true); // true = return only first row in this case;
-    return isset($data) ? $data : "";
+function startsWith($haystack, $needle) {
+    $length = strlen($needle);
+    return (substr($haystack, 0, $length) === $needle);
 }
-
-

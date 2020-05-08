@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <title></title>
     <link rel="stylesheet" href="css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
-    <link href="css/custom.css?v=7" rel="stylesheet" />
+    <link href="css/custom.css?v=10" rel="stylesheet" />
     <link href="css/font/css/all.css" rel="stylesheet" />
 </head>
 <body>
@@ -76,20 +76,31 @@
 
             <!--
             <div id="contentTabsDiv">
-                <ul class="nav nav-tabs nav-intro-tabs" id="contentTabs" role="tablist">
-                    <li class="nav-item" id="#subgroup-li" style="display: none"><a href="#subgroups" id="tab-subgroups" class="nav-link active" data-toggle="tab" role="tab" aria-controls="subgroups" aria-selected="true">Sub-clusters</a></li>
-                    <li class="nav-item"><a href="#subgroups" id="tab-subgroups" class="nav-link" data-toggle="tab" role="tab" aria-controls="subgroups" aria-selected="false">Subgroups</a></li>
-                    <li class="nav-item"><a href="#b12spasm" id="tab-b12spasm" class="nav-link" data-toggle="tab" role="tab" aria-controls="b12spasm" aria-selected="false">B12-Binding and SPASM Domains</a></li>
-                    <li class="nav-item"><a href="#search" id="tab-search" class="nav-link" data-toggle="tab" role="tab" aria-controls="search" aria-selected="false">Search Functions</a></li>
-                    <li class="nav-item"><a href="#database" id="tab-database" class="nav-link" data-toggle="tab" role="tab" aria-controls="database" aria-selected="false">Database Updates</a></li>
-                    <li class="nav-item"><a href="#community" id="tab-community" class="nav-link" data-toggle="tab" role="tab" aria-controls="community" aria-selected="false">Community Annotation</a></li>
-                </ul>
-                <div class="tab-content" id="introTabCOntent">
-                    <div class="tab-pane fade show active" id="background" role="tabpanel" aria-labelledby="tab-background">
 -->
             <div id="altSsn" style="display: none">
                 <h3 class="explore-heading">Additional Alignment Score Segregations</h3>
                 <p>This cluster has also been segregated with alternative alignment scores.</p>
+            </div>
+            <div id="childTabs" style="display: none">
+                <ul class="nav nav-tabs nav-intro-tabs" id="childTabsHdr" role="tablist">
+                    <li class="nav-item"><a href="#childDownload"   id="tab-child-download" class="nav-link active" data-toggle="tab" role="tab" aria-controls="download"  aria-selected="false">Data File Download</a></li>
+                    <li class="nav-item"><a href="#childLogo"       id="tab-child-logo"     class="nav-link" data-toggle="tab" role="tab" aria-controls="logo"      aria-selected="false">WebLogos</a></li>
+                    <li class="nav-item" id="childConsResListItem"><a href="#childConsRes"    id="tab-child-cons-res" class="nav-link" data-toggle="tab" role="tab" aria-controls="cons-res"  aria-selected="false">Consensus Residues</a></li>
+                    <li class="nav-item"><a href="#childHmm"        id="tab-child-hmm"      class="nav-link" data-toggle="tab" role="tab" aria-controls="hmm"       aria-selected="false">HMMs</a></li>
+                    <li class="nav-item"><a href="#childHisto"      id="tab-child-histo"    class="nav-link" data-toggle="tab" role="tab" aria-controls="histo"     aria-selected="false">Length Histograms</a></li>
+                </ul>
+                <div class="tab-content" id="childTabContent">
+                    <div class="tab-pane fade child-tab-pane show active"  id="childDownload"  role="tabpanel" aria-labelledby="tab-child-download">
+                    </div>
+                    <div class="tab-pane fade child-tab-pane show"         id="childLogo"      role="tabpanel" aria-labelledby="tab-child-logo">
+                    </div>
+                    <div class="tab-pane fade child-tab-pane show"         id="childConsRes"   role="tabpanel" aria-labelledby="tab-child-cons-res">
+                    </div>
+                    <div class="tab-pane fade child-tab-pane show"         id="childHmm"       role="tabpanel" aria-labelledby="tab-child-hmm">
+                    </div>
+                    <div class="tab-pane fade child-tab-pane show"         id="childHisto"     role="tabpanel" aria-labelledby="tab-child-histo">
+                    </div>
+                </div>
             </div>
             <div id="subgroupTable" style="display: none">
                 <h3 class="explore-heading">Sub-clusters (Segregated Into Higher Alignment Scores)</h3>
@@ -113,14 +124,6 @@
                 <h3 class="explore-heading">Length Histograms and WebLogo</h3>
                 <div class="row">
                     <div id="lengthHistogramContainer" class="col" style="display: none">
-                        <h5>Length Histogram for All Sequences (UniProt IDs)</h5>
-                        <div id="fullLengthHistogram"></div>
-                        <div class="float-right"><i class="fas fa-download download-btn" data-toggle="tooltip" title="Download high-resolution" id="downloadFullLenHistoImage"></i></div>
-                        <div style="clear: both"></div>
-                        <h5>Length-Filtered Histogram for Node Sequences (UniRef50 IDs) &mdash; Used for MSA, WebLogo, and HMM</h5>
-                        <div id="filteredLengthHistogram"></div>
-                        <div class="float-right"><i class="fas fa-download download-btn" data-toggle="tooltip" title="Download high-resolution" id="downloadFiltLenHistoImage"></i></div>
-                        <div style="clear: both"></div>
                     </div>
                     <div id="weblogoContainer" class="col" style="display: none">
                         <h5>WebLogo</h5>
@@ -182,17 +185,19 @@
     <script src="js/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <!--<script src="data/data.js?v=15"></script>-->
-    <script src="js/network.js?v=4"></script>
-    <script src="js/progress.js?v=1"></script>
-    <script src="js/app.js?v=20"></script>
+    <script src="js/network.js?v=7"></script>
+    <script src="js/progress.js?v=2"></script>
+    <script src="js/app.js?v=23"></script>
     <script src="js/imageMapResizer.min.js"></script>
     <script src="js/jquery.maphilight.min.js"></script>
+    <script src="js/jquery.lazy.min.js" type="text/javascript"></script>
     <script>
         $(document).ready(function () {
             var progress = new Progress($("#progressLoader"));
             progress.start();
 
             initApp("2.1");
+            $('.lazy').Lazy();
     
             $('[data-toggle="tooltip"]').tooltip();
         });

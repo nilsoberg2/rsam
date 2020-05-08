@@ -92,6 +92,8 @@ App.prototype.init = function(network) {
     this.addBreadcrumb();
     if (this.network.getAltSsns().length > 0) {
         this.initAltSsn();
+        if (this.alignmentScore)
+            this.initTabPages();
     } else {
         this.initStandard(isLeaf);
         if (this.network.Id != "fullnetwork")
@@ -99,14 +101,24 @@ App.prototype.init = function(network) {
         // Still more stuff to zoom in to
         if (!isLeaf)
             this.initChildren();
+        if (this.network.Id != "fullnetwork") {
+            this.addDownloadFeatures("downloads")
+            $("#downloadContainer").show();
+        }
     }
 
-    if (this.network.Id != "fullnetwork")
-        this.addDownloadFeatures();
-    
     applyRowClickableFn(this.version);
+
+    $(".hmm-logo").click(function(evt) {
+        var parm = $(this).data("logo");
+        var windowSize = ["width=1500,height=600"];
+        var url = "view_logo.php?" + parm;
+        var theWindow = window.open(url, "", windowSize);
+        evt.preventDefault();
+    });
 }
 App.prototype.initAltSsn = function() {
+    this.addClusterSize();
     this.setClusterImage(function() {});
     var altDiv = $("#altSsn");
     this.addAltSsns(altDiv);
@@ -136,7 +148,123 @@ App.prototype.initLeafData = function() {
     $("#submitAnnoLink").attr("href", $("#submitAnnoLink").attr("href") + "?id=" + this.network.Id);
 }
 App.prototype.initTabPages = function() {
+    var kids = this.network.getDicedChildren();
+    if (!kids.length)
+        return;
+
     var that = this;
+
+    var showSkyLign = false;
+    this.addDownloadFeatures("childDownload", showSkyLign);
+    //TODO: var consDiv = $("<div></div>");
+
+    var getDownloadFn = function(type, networkId, altText = "") {
+        var download = $('<span class="download-btn">' + altText + '</span>');
+        download.append('<i class="fas fa-download" data-toggle="tooltip" title="Download ' + altText + '"></i>');
+        download.click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl(type, networkId); });
+        var downloadDiv = $('<div class="float-right"></div>');
+        downloadDiv.append(download);
+        return downloadDiv;
+    };
+
+    var getSizeDivFn = function(size) {
+        return $('<div><span class="diced-cluster-size">Number of IDs: UniProt: <b>' + size.uniprot + '</b>, UniRef90: <b>' + size.uniref90 + '</b>, UniRef50: <b>' + size.uniref50 + '</b></span></div>');
+    };
+    
+    var mkHistoFn = function(dataDir, networkId, size, networkName) {
+        var div = $('<div class="w-50"><h4>' + networkName + '</h4></div>');
+        div.append(getSizeDivFn(size));
+        //TESTING/DEBUGGING:
+        //var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + that.network.Id + '" class="display-img-width">');
+        div.append(getDownloadFn("hist", networkId, "PNG "));
+        var img = $('<div><img src="' + dataDir + '/length_histogram_sm.png" alt="Length histogram for ' + networkName + '" class="display-img-width lazy"></div>');
+        div.append(img);
+        div.append(getDownloadFn("hist_filt", networkId, "PNG "));
+        img = $('<div><img src="' + dataDir + '/length_histogram_filtered_sm.png" alt="Length histogram histogram for ' + networkName + ' with UniRef50 sequences" class="display-img-width lazy"></div>');
+        div.append(img);
+        return div;
+    };
+
+    var mkLogoFn = function(dataDir, networkId, size, networkName) {
+        var div = $('<div class="w-50"><h4>' + networkName + '</h4></div>');
+        //TESTING/DEBUGGING:
+        //var img = $('<img src="data/weblogo.png" alt="WebLogo for ' + that.network.Id + '" class="display-img-width">');
+        var img = $('<img src="' + dataDir + '/weblogo.png" alt="WebLogo for ' + networkName + '" class="display-img-width lazy">');
+        div.append(getSizeDivFn(size));
+        div.append(getDownloadFn("weblogo", networkId, "PNG "));
+        div.append(getDownloadFn("msa", networkId, "MSA ").addClass("mr-4"));
+        div.append(img);
+        return div;
+    };
+
+    var mkHmmFn = function(dataDir, networkId, size, networkName) {
+        var div = $('<div><h4>' + networkName + '</h4></div>');
+        var img = $('<img src="' + dataDir + '/hmm.png" alt="HMM Skylign for ' + networkName + '" class="display-img-width lazy">');
+        div.append(getSizeDivFn(size));
+        div.append(getDownloadFn("hmm", networkId, "HMM "));
+        div.append(getDownloadFn("hmmpng", networkId, "PNG ").addClass("mr-4"));
+        var logoParms = 'cid=' + networkId;
+        if (that.alignmentScore)
+            logoParms += '&as=' + that.alignmentScore;
+        if (that.version)
+            logoParms += '&v=' + that.version;
+        var logoDiv = $('<div class="float-right"></div>');
+        logoDiv.append('<span class="download-btn mr-4 hmm-logo" data-logo="' + logoParms + '">Skylign <i class="fas fa-eye" data-toggle="tooltip" title="View HMM in SkyLign"></i></span>');
+        div.append(logoDiv);
+        div.append(img);
+        return div;
+    };
+
+    var mkConsResFn = function(dataDir, networkId, networkName) {
+        
+    };
+
+    var consResTypes = this.network.getConsensusResidues();
+    if (consResTypes.length == 0) {
+        $("#childConsResListItem").hide();
+        $("#childConsRes").hide();
+    } else {
+        var table = $('<table class="table table-sm text-center w-auto"></table>');
+        for (var ri = 0; ri < consResTypes.length; ri++) {
+            var consRes = consResTypes[ri];
+            var bodyRes = $('<tbody></tbody>');
+            bodyRes.append('<tr><td colspan="3" class="file-header-row">' + consRes + '</td></tr>');
+            table.append(bodyRes);
+            var body = $('<tbody></tbody>');
+            var res = consRes.toLowerCase();
+            body.append('<tr><td>' + this.getDownloadButton("crpo"+res) + '</td><td>Consensus residue position summary table</td><td>&lt;1 MB</td></tr>');
+            body.append('<tr><td>' + this.getDownloadButton("crpe"+res) + '</td><td>Consensus residue percentage summary table</td><td>&lt;1 MB</td></tr>');
+            body.append('<tr><td>' + this.getDownloadButton("crid"+res) + '</td><td>ID lists grouped by consensus residue percentage and number of residues in cluster</td><td>&lt;1 MB</td></tr>');
+            table.append(body);
+        }
+        $("#childConsRes").append(table);
+    }
+
+    var histDiv = $("<div></div>");
+    var logoDiv = $("<div></div>");
+    var hmmDiv = $("<div></div>");
+    for (var i = 0; i < kids.length; i++) {
+        var kidId = kids[i].id;
+        //var kidSize = {uniprot: 0, uniref50: 0, uniref90: 0};
+        var kidSizeRaw = kids[i].size;
+        var kidSize = {uniprot: parseInt(kidSizeRaw.uniprot).toLocaleString(), uniref90: parseInt(kidSizeRaw.uniref90).toLocaleString(), uniref50: parseInt(kidSizeRaw.uniref50).toLocaleString()};
+        var dataDir = this.dataDir + "/" + kidId;
+        var netName = "Mega" + kidId;
+        var hist = mkHistoFn(dataDir, kidId, kidSize, netName);
+        var logo = mkLogoFn(dataDir, kidId, kidSize, netName);
+        var hmm = mkHmmFn(dataDir, kidId, kidSize, netName);
+        histDiv.append(hist);
+        logoDiv.append(logo);
+        hmmDiv.append(hmm);
+    }
+
+    $("#childLogo").append(logoDiv);
+    $("#childHmm").append(hmmDiv);
+    $("#childHisto").append(histDiv);
+
+    $("#childTabs").show();
+
+    /*
     var showFn = function() {
         var clusterTableDiv = $('<div id="clusterTable"></div>');
         that.addSubgroupTable(clusterTableDiv);
@@ -170,8 +298,9 @@ App.prototype.initTabPages = function() {
     }
 
     $("#subgroupTable").show();
+    */
 }
-App.prototype.initChildrenOld = function() {
+App.prototype.initChildren = function() {
     var that = this;
     var showFn = function() {
         var clusterTableDiv = $('<div id="clusterTable"></div>');
@@ -184,7 +313,7 @@ App.prototype.initChildrenOld = function() {
         $("#dicingInfo").show();
         var menu = $('<select class="form-control w-25"></select>');
         for (var i = 0; i < kids.length; i++) {
-            menu.append($('<option></option>').attr("value", kids[i]).text(kids[i]));
+            menu.append($('<option></option>').attr("value", kids[i].id).text(kids[i].id));
         }
         menu.val("");
         menu.change(function() {
@@ -249,23 +378,38 @@ App.prototype.addDisplayFeatures = function () {
             $("#downloadWeblogoImage").click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("weblogo"); });
             $("#weblogoContainer").show();
         } else if (feat[i] == "length_histogram") {
-            //TESTING/DEBUGGING:
-            //var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
-            var img = $('<img src="' + this.dataDir + '/length_histogram_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
-            $("#fullLengthHistogram").append(img);
-            $("#downloadFullLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist"); });
-            //TESTING/DEBUGGING:
-            //var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
-            var img = $('<img src="' + this.dataDir + '/length_histogram_filtered_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
-            $("#filteredLengthHistogram").append(img);
-            $("#downloadFiltLenHistoImage").click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist_filt"); });
-            $("#lengthHistogramContainer").show();
+            var dlBtn = $('<i class="fas fa-download download-btn" data-toggle="tooltip" title="Download high-resolution"></i>');
+            dlBtn.click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist"); });
+            var dlDiv = $('<div class="float-right"></div>').append(dlBtn);
+            
+            var div = $("<div></div>");
+            div.append('<h5>Length Histogram for All Sequences (UniProt IDs)</h5>');
+            div.append('<div></div>')
+                .append('<img src="' + this.dataDir + '/length_histogram_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
+            div.append(dlDiv);
+            div.append('<div style="clear: both"></div>');
+
+            if (this.alignmentScore) {
+                div.append('<h5>Length Histogram for Node Sequences (UniRef50 IDs)</h5>');
+            } else {
+                div.append('<h5>Length-Filtered Histogram for Node Sequences (UniRef50 IDs) &mdash; Used for MSA, WebLogo, and HMM</h5>');
+            }
+            div.append('<div></div>')
+                .append('<img src="' + this.dataDir + '/length_histogram_filtered_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
+            
+            dlBtn = $('<i class="fas fa-download download-btn" data-toggle="tooltip" title="Download high-resolution"></i>');
+            dlBtn.click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist_filt"); });
+            dlDiv = $('<div class="float-right"></div>').append(dlBtn);
+            div.append(dlDiv);
+            div.append('<div style="clear: both"></div>');
+            $("#lengthHistogramContainer").append(div).show();
         }
     }
     return hasData;
 }
-App.prototype.addDownloadFeatures = function () {
+App.prototype.addDownloadFeatures = function (containerId, showSkyLign = true) {
     var feat = this.network.getDownloadFeatures();
+    console.log(feat);
     if (feat.length == 0)
         return false;
 
@@ -290,6 +434,16 @@ App.prototype.addDownloadFeatures = function () {
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".afa") + '</td><td>MSA for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         } else if (feat[i] == "hmm") {
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".hmm") + '</td><td>HMM for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
+            if (showSkyLign) {
+                var logoParms = "";
+                var logoParms = 'cid=' + this.network.Id;
+                if (this.alignmentScore)
+                    logoParms += '&as=' + this.alignmentScore;
+                if (this.version)
+                    logoParms += '&v=' + this.version;
+                var logoBtn = '<button class="btn btn-primary btn-sm hmm-logo" data-logo="' + logoParms + '">View HMM</button>';
+                body.append('<tr><td>' + logoBtn + '</td><td>View HMM in SkyLign</td><td></td></tr>');
+            }
         } else if (feat[i] == "id_fasta") {
             var t = [
                 { "key": "uniprot_id", "desc": "UniProt ID list" },
@@ -324,8 +478,7 @@ App.prototype.addDownloadFeatures = function () {
         }
     }
 
-    $("#downloads").append(table);
-    $("#downloadContainer").show();
+    $("#"+containerId).append(table);
 }
 
 
@@ -562,8 +715,8 @@ App.prototype.addSubgroupTable = function (div) {
         var head = table.append('<thead><tr><th>Sub-Cluster</th></tr></thead>');
         var body = table.append('<tbody class="row-clickable text-center"></tbody>');
         $.each(this.network.getDicedChildren(), function (i, data) {
-            var row = $('<tr data-node-id="' + data + '"></tr>');
-            row.append("<td>" + data + "</td>");
+            var row = $('<tr data-node-id="' + data.id + '"></tr>');
+            row.append("<td>" + data.id + "</td>");
             body.append(row);
         });
     } else if (this.network.getSubgroups().length > 0) {
@@ -700,12 +853,14 @@ function getUrlFn(id, version, alignmentScore = "") {
 function goToUrlFn(id, version, alignmentScore = "") {
     window.location = getUrlFn(id, version, alignmentScore);
 }
-App.prototype.getDownloadUrl = function(type) {
+App.prototype.getDownloadUrl = function(type, networkId = "") {
+    if (!networkId)
+        networkId = this.network.Id;
     var extPos = type.indexOf(".");
     if (extPos >= 0)
         type = type.substr(0, extPos);
     //this.dataDir + "/weblogo.png"
-    var url = "download.php?c=" + this.network.Id + "&v=" + this.version + "&t=" + type;
+    var url = "download.php?c=" + networkId + "&v=" + this.version + "&t=" + type;
     if (this.alignmentScore)
         url += "&as=" + this.alignmentScore;
     return url;

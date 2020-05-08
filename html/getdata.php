@@ -96,11 +96,12 @@ function get_cluster($db, $cluster_id, $ascore, $version) {
             "children" => array(),
         ),
         "alt_ssn" => array(),
+        "cons_res" => array(),
         "dir" => "",
     );
 
     $data["dicing"]["parent"] = get_dicing_parent($db, $cluster_id);
-    $data["dicing"]["children"] = get_dicing_children($db, $cluster_id);
+    $data["dicing"]["children"] = get_dicing_children($db, $cluster_id, $ascore);
     $parent_cluster_id = $data["dicing"]["parent"];
     $child_cluster_id = "";
     $is_child = $parent_cluster_id ? true : false;
@@ -110,13 +111,13 @@ function get_cluster($db, $cluster_id, $ascore, $version) {
         $parent_cluster_id = $cluster_id;
     }
 
-    $info = get_network_info($db, $cluster_id);
+    $info = get_network_info($db, $cluster_id, $is_child, $parent_cluster_id);
     $data["name"] = $info["name"];
     $data["title"] = $info["title"];
     $data["desc"] = $info["desc"];
     $data["image"] = $cluster_id;
     $data["public"]["kegg_count"] = get_kegg($db, $cluster_id, true);
-    $data["size"] = get_sizes($db, $cluster_id);
+    $data["size"] = get_sizes($db, $cluster_id, $is_child);
     $data["public"]["swissprot"] = get_swissprot($db, $cluster_id);
     $data["public"]["pdb"] = get_pdb($db, $cluster_id);
     $data["families"]["tigr"] = get_tigr($db, $cluster_id);
@@ -124,6 +125,7 @@ function get_cluster($db, $cluster_id, $ascore, $version) {
     $data["download"] = get_download($db, $parent_cluster_id, $version, $ascore, $child_cluster_id);
     $data["regions"] = get_regions($db, $cluster_id);
     $data["alt_ssn"] = get_alt_ssns($db, $cluster_id);
+    $data["cons_res"] = get_consensus_residues($db, $parent_cluster_id, $version, $ascore, $child_cluster_id);
 
     $data["dir"] = functions::get_rel_data_dir_path($parent_cluster_id, $version, $ascore, $child_cluster_id);
     if ($ascore)
@@ -158,8 +160,10 @@ function get_network_info_sfld_sql($extra_cols = "", $extra_join = "") {
         ;
     return $sql;
 }
-function get_network_info_title($row, $sfld_only = false) {
+function get_network_info_title($row, $sfld_only = false, $child_cluster_id = "") {
     $title = !$sfld_only ? $row["name"] : "";
+    if ($child_cluster_id)
+        $title .= ' / Mega' . $child_cluster_id;
     if ($row["title"] && $row["sfld_id"]) {
         if ($sfld_only) {
             $title .= $row["title"];
@@ -179,14 +183,18 @@ function get_network_info_title($row, $sfld_only = false) {
     }
     return $title;
 }
-function get_network_info($db, $cluster_id) {
+function get_network_info($db, $cluster_id, $is_child, $parent_cluster_id) {
     $sql = get_network_info_sfld_sql() . " WHERE network.cluster_id = :id";
     $sth = $db->prepare($sql);
-    $sth->bindValue("id", $cluster_id);
+    if ($is_child)
+        $sth->bindValue("id", $parent_cluster_id);
+    else
+        $sth->bindValue("id", $cluster_id);
     $sth->execute();
     $row = $sth->fetch();
     if ($row) {
-        $title = get_network_info_title($row);
+        $child_cluster_id = $is_child ? $cluster_id : "";
+        $title = get_network_info_title($row, false, $child_cluster_id);
         return array("cluster_id" => $row["cluster_id"], "name" => $row["name"], "title" => $title, "desc" => $row["desc"]);
     } else {
         return array("cluster_id" => $cluster_id, "name" => "", "title" => "", "desc" => "");
@@ -243,24 +251,41 @@ function get_display($db, $cluster_id, $version = "", $ascore = "", $child_id = 
     return $feat;
 }
 
+function get_consensus_residues($db, $cluster_id, $version = "", $ascore = "", $child_id = "") {
+    $is_diced_parent = $ascore && !$child_id;
+    if (!$is_diced_parent)
+        return array();
+    $cpath = functions::get_data_dir_path($cluster_id, $version, $ascore, $child_id);
+    $files = glob("$cpath/consensus_residue_*_all.zip");
+    $res = array();
+    foreach ($files as $file) {
+        preg_match("/^.*consensus_residue_([A-Z])_.*$/", $file, $matches);
+        if (isset($matches[1]))
+            array_push($res, $matches[1]);
+    }
+    return $res;
+}
+
 function get_download($db, $cluster_id, $version = "", $ascore = "", $child_id = "") {
     $cpath = functions::get_data_dir_path($cluster_id, $version, $ascore, $child_id);
     //$cpath = "$basepath/$cluster_id";
 
     $feat = array();
 
+    $show_child_feat = $ascore && !$child_id;
+
     $ssn = functions::get_ssn_path($db, $cluster_id);
     if ($ssn)
         array_push($feat, "ssn");
-    if (file_exists("$cpath/weblogo.png"))
+    if (file_exists("$cpath/weblogo.png") || $show_child_feat)
         array_push($feat, "weblogo");
-    if (file_exists("$cpath/msa.afa"))
+    if (file_exists("$cpath/msa.afa") || $show_child_feat)
         array_push($feat, "msa");
-    if (file_exists("$cpath/hmm.hmm"))
+    if (file_exists("$cpath/hmm.hmm") || $show_child_feat)
         array_push($feat, "hmm");
-    if (file_exists("$cpath/uniprot.txt"))
+    if (file_exists("$cpath/uniprot.txt") || $show_child_feat)
         array_push($feat, "id_fasta");
-    if (file_exists("$cpath/swissprot.txt"))
+    if (file_exists("$cpath/swissprot.txt") || $show_child_feat)
         array_push($feat, "misc");
 
     return $feat;
@@ -352,12 +377,29 @@ function get_dicing_parent($db, $cluster_id) {
     return isset($data) ? $data : "";
 }
 
-function get_dicing_children($db, $cluster_id) {
-    $sql = "SELECT cluster_id FROM dicing WHERE parent_id = :id";
+function get_dicing_children($db, $cluster_id, $ascore = "") {
+    $sql = "SELECT dicing.cluster_id AS cluster_id, size_diced.uniprot AS uniprot, size_diced.uniref90 AS uniref90, size_diced.uniref50 AS uniref50 FROM dicing LEFT JOIN size_diced ON dicing.cluster_id = size_diced.cluster_id WHERE parent_id = :id";
+    if ($ascore)
+        $sql .= " AND dicing.alignment_score = :ascore";
+    $sth = $db->prepare($sql);
+    if (!$sth)
+        return array();
+    
     $row_fn = function($row) {
-        return $row["cluster_id"];
+        return array("id" => $row["cluster_id"],
+            "size" => array("uniprot" => $row["uniprot"], "uniref50" => $row["uniref50"], "uniref90" => $row["uniref90"]));
     };
-    return get_generic_fetch($db, $cluster_id, $sql, $row_fn); // true = return only first row in this case;
+
+    $sth->bindValue("id", $cluster_id);
+    if ($ascore)
+        $sth->bindValue("ascore", $ascore);
+    $sth->execute();
+    $data = array();
+    while ($row = $sth->fetch()) {
+        array_push($data, $row_fn($row));
+    }
+
+    return $data;
 }
 
 function get_alt_ssns($db, $cluster_id) {
@@ -368,8 +410,9 @@ function get_alt_ssns($db, $cluster_id) {
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
 }
 
-function get_sizes($db, $id) {
-    $sql = "SELECT * FROM size WHERE cluster_id = :id";
+function get_sizes($db, $id, $is_child = false) {
+    $table = $is_child ? "size_diced" : "size";
+    $sql = "SELECT * FROM $table WHERE cluster_id = :id";
     $row_fn = function($row) {
         return array("uniprot" => $row["uniprot"], "uniref90" => $row["uniref90"], "uniref50" => $row["uniref50"]);
     };

@@ -98,5 +98,25 @@ class functions {
         }
         return $check_only ? 0 : $data;
     }
+    public static function get_dicing_parent($db, $cluster_id) {
+        $sql = functions::get_generic_sql("dicing", "parent_id");
+        $row_fn = function($row) {
+            return $row["parent_id"];
+        };
+        $data = functions::get_generic_fetch($db, $cluster_id, $sql, $row_fn, true); // true = return only first row in this case;
+        return isset($data) ? $data : "";
+    }
+    // Same as get_data_dir_path but checks for dicing
+    public static function get_data_dir_path2($db, $version, $ascore, $cluster_id) {
+        $parent_cluster_id = functions::get_dicing_parent($db, $cluster_id);
+        $child_cluster_id = "";
+        if ($parent_cluster_id) {
+            $child_cluster_id = $cluster_id;
+        } else {
+            $parent_cluster_id = $cluster_id;
+        }
+        $basepath = functions::get_data_dir_path($parent_cluster_id, $version, $ascore, $child_cluster_id);
+        return $basepath;
+    }
 }
 
