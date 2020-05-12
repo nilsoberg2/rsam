@@ -25,14 +25,6 @@ if (!functions::validate_cluster_id($db, $cluster_id)) {
 }
 $version = functions::filter_version($version);
 
-//$parent_cluster_id = functions::get_dicing_parent($db, $cluster_id);
-//$child_cluster_id = "";
-//if ($parent_cluster_id) {
-//    $child_cluster_id = $cluster_id;
-//} else {
-//    $parent_cluster_id = $cluster_id;
-//}
-//$basepath = functions::get_data_dir_path($parent_cluster_id, $version, $ascore, $child_cluster_id);
 $basepath = functions::get_data_dir_path2($db, $version, $ascore, $cluster_id);
 $fpath = "";
 $fname = "";
@@ -55,6 +47,17 @@ $ascore_prefix = $ascore ? "AS${ascore}_" : "";
                 $fpath = $file;
                 $fname = "${cluster_id}_${ascore_prefix}$suffix";
                 break;
+            } else if ($ascore) {
+                $parent_cluster_id = functions::get_dicing_parent($db, $cluster_id, $ascore);
+                if ($parent_cluster_id) {
+                    $parent_path = functions::get_data_dir_path2($db, $version, $ascore, $parent_cluster_id);
+                    $file = "$parent_path/$fname";
+                    if (file_exists($file)) {
+                        $fpath = $file;
+                        $fname = "${parent_cluster_id}_${ascore_prefix}$suffix";
+                        break;
+                    }
+                }
             }
         }
         if ($fpath)
@@ -115,8 +118,10 @@ function filter_type($type) {
         "net" => array("lg.png"),
         "hmm" => array("hmm.hmm", "hmm.zip"),
         "hmmpng" => array("hmm.png", "hmm.zip"),
-        "hist" => array("length_histogram_lg.png"),
+        "hist" => array("length_histogram_lg.png", "length_histogram_uniprot.zip"),
         "hist_filt" => array("length_histogram_filtered_lg.png"),
+        "hist_up" => array("length_histogram_uniprot.zip"),
+        "hist_ur50" => array("length_histogram_uniref50.png", "length_histogram_uniref50.zip"),
         "msa" => array("msa.afa", "msa.zip"),
         "uniprot_id" => array("uniprot.txt", "uniprot.zip"),
         "uniref50_id" => array("uniref50.txt", "uniref50.zip"),

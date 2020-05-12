@@ -67,9 +67,9 @@ Network.prototype.getDataDir = function() {
     return typeof this.dataDir !== "undefined" ? this.dataDir : "data";
 }
 // Since there are potentially many KEGG IDs, we get the list of IDs async.
-Network.prototype.getKeggCount = function() {
+Network.prototype.hasKeggIds = function() {
     // The number of KEGG IDs is returned with the network JSON, but not the ID list.
-    return typeof this.data.public.kegg_count !== "undefined" ? this.data.public.kegg_count : 0;
+    return typeof this.data.public.has_kegg !== "undefined" ? this.data.public.has_kegg : false;
 }
 // ASYNC
 Network.prototype.getKeggIds = function(addKeggIdFn, finishFn) {

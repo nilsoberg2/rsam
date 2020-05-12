@@ -92,8 +92,16 @@ App.prototype.init = function(network) {
     this.addBreadcrumb();
     if (this.network.getAltSsns().length > 0) {
         this.initAltSsn();
-        if (this.alignmentScore)
+        var dlDivId = "downloads";
+        var hideTabStuff = false;
+        if (this.alignmentScore) {
             this.initTabPages();
+            dlDivId = "childDownload";
+            hideTabStuff = true;
+        } else {
+            $("#downloadContainer").show();
+        }
+        this.addDownloadFeatures(dlDivId, hideTabStuff);
     } else {
         this.initStandard(isLeaf);
         if (this.network.Id != "fullnetwork")
@@ -153,9 +161,6 @@ App.prototype.initTabPages = function() {
         return;
 
     var that = this;
-
-    var showSkyLign = false;
-    this.addDownloadFeatures("childDownload", showSkyLign);
     //TODO: var consDiv = $("<div></div>");
 
     var getDownloadFn = function(type, networkId, altText = "") {
@@ -179,8 +184,8 @@ App.prototype.initTabPages = function() {
         div.append(getDownloadFn("hist", networkId, "PNG "));
         var img = $('<div><img src="' + dataDir + '/length_histogram_sm.png" alt="Length histogram for ' + networkName + '" class="display-img-width lazy"></div>');
         div.append(img);
-        div.append(getDownloadFn("hist_filt", networkId, "PNG "));
-        img = $('<div><img src="' + dataDir + '/length_histogram_filtered_sm.png" alt="Length histogram histogram for ' + networkName + ' with UniRef50 sequences" class="display-img-width lazy"></div>');
+        div.append(getDownloadFn("hist_ur50", networkId, "PNG "));
+        img = $('<div><img src="' + dataDir + '/length_histogram_uniref50_sm.png" alt="Length histogram histogram for ' + networkName + ' with UniRef50 sequences" class="display-img-width lazy"></div>');
         div.append(img);
         return div;
     };
@@ -215,8 +220,16 @@ App.prototype.initTabPages = function() {
         return div;
     };
 
-    var mkConsResFn = function(dataDir, networkId, networkName) {
-        
+    var mkTable = function(data) {
+        var table = $('<table class="table table-sm text-center w-auto"></table>');
+        var body = $('<tbody></tbody>');
+        for (var i = 0; i < data.length; i++) {
+            body.append('<tr><td>' + that.getDownloadButton(data[i][0]) + '</td><td>' + data[i][1] + '</td><td>'
+                    //+ that.getDownloadSize(data[i][0])
+                    + '</td></tr>');
+        }
+        table.append(body);
+        return table;
     };
 
     var consResTypes = this.network.getConsensusResidues();
@@ -232,17 +245,22 @@ App.prototype.initTabPages = function() {
             table.append(bodyRes);
             var body = $('<tbody></tbody>');
             var res = consRes.toLowerCase();
-            body.append('<tr><td>' + this.getDownloadButton("crpo"+res) + '</td><td>Consensus residue position summary table</td><td>&lt;1 MB</td></tr>');
+            //body.append('<tr><td>' + this.getDownloadButton("crpo"+res) + '</td><td>Consensus residue position summary table</td><td>&lt;1 MB</td></tr>');
             body.append('<tr><td>' + this.getDownloadButton("crpe"+res) + '</td><td>Consensus residue percentage summary table</td><td>&lt;1 MB</td></tr>');
-            body.append('<tr><td>' + this.getDownloadButton("crid"+res) + '</td><td>ID lists grouped by consensus residue percentage and number of residues in cluster</td><td>&lt;1 MB</td></tr>');
+            //body.append('<tr><td>' + this.getDownloadButton("crid"+res) + '</td><td>ID lists grouped by consensus residue percentage and number of residues in cluster</td><td>&lt;1 MB</td></tr>');
             table.append(body);
         }
         $("#childConsRes").append(table);
     }
 
-    var histDiv = $("<div></div>");
-    var logoDiv = $("<div></div>");
-    var hmmDiv = $("<div></div>");
+    var histDiv = $("<div><h3>Length Histograms</h3></div>");
+    histDiv.append(mkTable([["hist_up.zip", "Length Histograms for all clusters, UniProt sequences"],
+                            ["hist_ur50.zip", "Length Histograms for all clusters, UniRef50 sequences"]]));
+    var logoDiv = $("<div><h3>WebLogos</h3></div>");
+    logoDiv.append(mkTable([["weblogo.zip", "WebLogos for all clusters"],
+                            ["msa.zip", "Multiple Sequence Alignments (MSAs) for all clusters"]]));
+    var hmmDiv = $("<div><h3>HMMs</h3></div>");
+    hmmDiv.append(mkTable([["hmm.zip", "HMMs for all clusters"]]));
     for (var i = 0; i < kids.length; i++) {
         var kidId = kids[i].id;
         //var kidSize = {uniprot: 0, uniref50: 0, uniref90: 0};
@@ -349,8 +367,6 @@ App.prototype.setPageHeaders = function () {
     if (as.length > 0) {
         var hWarn = $('<span class="as-warning"> (Alignment Score ' + as + ')</span>');
         $("#familyTitle").append(hWarn);
-        var dWarn = $('<div class="as-warning">Results for this alignment score (' + as + ') only include downloads below.</div>');
-        $("#clusterDesc").append(dWarn);
     }
 }
 App.prototype.addClusterSize = function () {
@@ -407,7 +423,7 @@ App.prototype.addDisplayFeatures = function () {
     }
     return hasData;
 }
-App.prototype.addDownloadFeatures = function (containerId, showSkyLign = true) {
+App.prototype.addDownloadFeatures = function (containerId, hideTabStuff = false) {
     var feat = this.network.getDownloadFeatures();
     console.log(feat);
     if (feat.length == 0)
@@ -426,15 +442,15 @@ App.prototype.addDownloadFeatures = function (containerId, showSkyLign = true) {
         } else if (feat[i] == "ssn") {
             var parentSsnText = isDiced ? " (for parent cluster)" : "";
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".zip") + '</td><td>Sequence Similarity Network' + parentSsnText + '</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
-        } else if (feat[i] == "cons") { // consensus residue
-            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".txt") + '</td><td>Consensus Residues</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
-        } else if (feat[i] == "weblogo") {
+        //} else if (feat[i] == "cons") { // consensus residue
+        //    body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".txt") + '</td><td>Consensus Residues</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
+        } else if (feat[i] == "weblogo" && !hideTabStuff) {
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".png") + '</td><td>WebLogo for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
-        } else if (feat[i] == "msa") {
+        } else if (feat[i] == "msa" && !hideTabStuff) {
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".afa") + '</td><td>MSA for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
-        } else if (feat[i] == "hmm") {
+        } else if (feat[i] == "hmm" && !hideTabStuff) {
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".hmm") + '</td><td>HMM for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
-            if (showSkyLign) {
+            if (!hideTabStuff) {
                 var logoParms = "";
                 var logoParms = 'cid=' + this.network.Id;
                 if (this.alignmentScore)
@@ -611,7 +627,7 @@ App.prototype.addTigrFamilies  = function () {
     }
 }
 App.prototype.checkForKegg = function () {
-    if (this.network.getKeggCount() == 0)
+    if (!this.network.hasKeggIds())
         return;
     var that = this;
     //$("#keggList").append("<div>This cluster contains " + parseInt(this.network.getKeggCount()).toLocaleString() + " KEGG-annotated sequences.</div>");

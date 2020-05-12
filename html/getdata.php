@@ -3,6 +3,19 @@
 require_once(__DIR__ . "/../libs/settings.class.inc.php");
 require_once(__DIR__ . "/../libs/functions.class.inc.php");
 
+//const ASCORE_COL = "alignment_score";
+//const DICED_SIZE = "size_diced";
+//const DICED_NETWORK = "dicing";
+//const DICED_ID_MAPPING = "id_mapping_diced";
+//const DICED_SSN = "ssn";
+//const USE_UNIPROT_ID_JOIN = false;
+const ASCORE_COL = "ascore";
+const DICED_SIZE = "diced_size";
+const DICED_NETWORK = "diced_network";
+const DICED_ID_MAPPING = "diced_id_mapping";
+const DICED_SSN = "diced_ssn";
+const USE_UNIPROT_ID_JOIN = true;
+
 //$version = filter_input(INPUT_GET, "v", FILTER_SANITIZE_NUMBER_INT);
 $version = functions::validate_version();
 
@@ -82,7 +95,7 @@ function get_cluster($db, $cluster_id, $ascore, $version) {
         "regions" => array(),
         "subgroups" => array(),
         "public" => array(
-            "kegg_count" => 0,
+            "has_kegg" => false,
             "swissprot" => array(),
             "pdb" => array(),
         ),
@@ -100,7 +113,7 @@ function get_cluster($db, $cluster_id, $ascore, $version) {
         "dir" => "",
     );
 
-    $data["dicing"]["parent"] = get_dicing_parent($db, $cluster_id);
+    $data["dicing"]["parent"] = functions::get_dicing_parent($db, $cluster_id, $ascore);
     $data["dicing"]["children"] = get_dicing_children($db, $cluster_id, $ascore);
     $parent_cluster_id = $data["dicing"]["parent"];
     $child_cluster_id = "";
@@ -116,10 +129,10 @@ function get_cluster($db, $cluster_id, $ascore, $version) {
     $data["title"] = $info["title"];
     $data["desc"] = $info["desc"];
     $data["image"] = $cluster_id;
-    $data["public"]["kegg_count"] = get_kegg($db, $cluster_id, true);
+    $data["public"]["has_kegg"] = get_kegg($db, $cluster_id, $ascore, true);
     $data["size"] = get_sizes($db, $cluster_id, $is_child);
-    $data["public"]["swissprot"] = get_swissprot($db, $cluster_id);
-    $data["public"]["pdb"] = get_pdb($db, $cluster_id);
+    $data["public"]["swissprot"] = get_swissprot($db, $cluster_id, $ascore);
+    $data["public"]["pdb"] = get_pdb($db, $cluster_id, $ascore);
     $data["families"]["tigr"] = get_tigr($db, $cluster_id);
     $data["display"] = get_display($db, $parent_cluster_id, $version, $ascore, $child_cluster_id);
     $data["download"] = get_download($db, $parent_cluster_id, $version, $ascore, $child_cluster_id);
@@ -268,6 +281,8 @@ function get_consensus_residues($db, $cluster_id, $version = "", $ascore = "", $
 
 function get_download($db, $cluster_id, $version = "", $ascore = "", $child_id = "") {
     $cpath = functions::get_data_dir_path($cluster_id, $version, $ascore, $child_id);
+    if ($ascore && $child_id)
+        $parent_path = functions::get_data_dir_path2($db, $version, $ascore, $cluster_id);
     //$cpath = "$basepath/$cluster_id";
 
     $feat = array();
@@ -283,6 +298,10 @@ function get_download($db, $cluster_id, $version = "", $ascore = "", $child_id =
         array_push($feat, "msa");
     if (file_exists("$cpath/hmm.hmm") || $show_child_feat)
         array_push($feat, "hmm");
+    if (file_exists("$cpath/ssn.zip") || $show_child_feat)
+        array_push($feat, "ssn");
+    else if ($parent_path && (file_exists("$parent_path/ssn.zip") || $show_child_feat))
+        array_push($feat, "ssn");
     if (file_exists("$cpath/uniprot.txt") || $show_child_feat)
         array_push($feat, "id_fasta");
     if (file_exists("$cpath/swissprot.txt") || $show_child_feat)
@@ -308,8 +327,21 @@ function get_generic_fetch($db, $cluster_id, $sql, $handle_row_fn, $check_only =
     //return $check_only ? 0 : $data;
 }
 
-function get_generic_sql($table, $parm, $extra_where = "", $check_only = false) {
-    return functions::get_generic_sql($table, $parm, $extra_where, $check_only);
+function get_generic_join_sql($table, $parm, $extra_where = "", $ascore = "", $check_only = false) {
+    if (USE_UNIPROT_ID_JOIN) {
+        $join_table = $ascore ? DICED_ID_MAPPING : "id_mapping";
+        $sql = "SELECT $parm FROM $table INNER JOIN $join_table ON $table.uniprot_id = $join_table.uniprot_id WHERE $join_table.cluster_id = :id";
+        if ($check_only)
+            $sql .= " LIMIT 1";
+        return $sql;
+    } else {
+        return functions::get_generic_sql($table, $parm, $extra_where, $check_only);
+    }
+
+    //$check_parm = $check_only ? "COUNT(*) AS $parm" : "$parm";
+    //$sql = "SELECT $check_parm FROM $table LEFT JOIN id_mapping ON $table.uniprot_id = id_mapping.uniprot_id WHERE id_mapping.cluster_id = :id";
+    
+    //return functions::get_generic_sql($table, $parm, $extra_where, $check_only);
     //if ($check_only)
     //    $sql = "SELECT COUNT(*) AS $parm FROM $table WHERE cluster_id = :id $extra_where";
     //else
@@ -317,28 +349,26 @@ function get_generic_sql($table, $parm, $extra_where = "", $check_only = false) 
     //return $sql;
 }
 
-function get_kegg($db, $cluster_id, $check_only = false) {
-    $sql = get_generic_sql("kegg", "kegg", "", $check_only);
+function get_kegg($db, $cluster_id, $ascore = "", $check_only = false) {
+    $sql = get_generic_join_sql("kegg", "kegg", "", $ascore, $check_only);
     $row_fn = function($row) { return $row["kegg"]; };
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn, $check_only);
 }
 
-function get_swissprot($db, $cluster_id, $check_only = false) {
-    $sql = get_generic_sql("swissprot", "function, GROUP_CONCAT(uniprot_id) AS ids", "GROUP BY function ORDER BY function", $check_only);
-    #$sql = get_generic_sql("swissprot", "DISTINCT(function)", "ORDER BY function", $check_only);
+function get_swissprot($db, $cluster_id, $ascore = "", $check_only = false) {
+    $sql = get_generic_join_sql("swissprot", "function, GROUP_CONCAT(swissprot.uniprot_id) AS ids", "GROUP BY function ORDER BY function", $ascore, $check_only);
     $row_fn = function($row) { return array($row["function"], $row["ids"]); };
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
 }
 
-function get_pdb($db, $cluster_id, $check_only = false) {
-    $sql = get_generic_sql("pdb", "pdb, uniprot_id", "", $check_only);
+function get_pdb($db, $cluster_id, $ascore = "", $check_only = false) {
+    $sql = get_generic_join_sql("pdb", "pdb, pdb.uniprot_id", "", $ascore, $check_only);
     $row_fn = function($row) { return array($row["pdb"], $row["uniprot_id"]); };
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
 }
 
 function get_tigr($db, $cluster_id, $check_only = false) {
     $sql = "SELECT families.family, family_info.description FROM families LEFT JOIN family_info ON families.family = family_info.family WHERE cluster_id = :id AND family_type = 'TIGR'";
-    //$sql = get_generic_sql("families", "family", "AND family_type = 'TIGR'", $check_only);
     $row_fn = function($row) { return array($row["family"], $row["description"]); };
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
 }
@@ -355,7 +385,7 @@ function get_enzyme_codes($db) {
 }
 
 function get_regions($db, $cluster_id) {
-    $sql = get_generic_sql("region", "*", "ORDER BY region_index", $check_only);
+    $sql = functions::get_generic_sql("region", "*", "ORDER BY region_index");
     //cluster_id TEXT, region_id TEXT, region_index INT, name TEXT, number TEXT, coords TEXT
     $row_fn = function($row) {
         $data = array();
@@ -368,31 +398,37 @@ function get_regions($db, $cluster_id) {
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
 }
 
-function get_dicing_parent($db, $cluster_id) {
-    $sql = get_generic_sql("dicing", "parent_id");
-    $row_fn = function($row) {
-        return $row["parent_id"];
-    };
-    $data = get_generic_fetch($db, $cluster_id, $sql, $row_fn, true); // true = return only first row in this case;
-    return isset($data) ? $data : "";
-}
 
 function get_dicing_children($db, $cluster_id, $ascore = "") {
-    $sql = "SELECT dicing.cluster_id AS cluster_id, size_diced.uniprot AS uniprot, size_diced.uniref90 AS uniref90, size_diced.uniref50 AS uniref50 FROM dicing LEFT JOIN size_diced ON dicing.cluster_id = size_diced.cluster_id WHERE parent_id = :id";
+    $ascore_col = ASCORE_COL;
+    $diced_net_table = DICED_NETWORK;
+    $diced_size_table = DICED_SIZE;
+    $sql = <<<SQL
+    SELECT $diced_net_table.cluster_id AS cluster_id,
+        $diced_size_table.uniprot AS uniprot,
+        $diced_size_table.uniref90 AS uniref90,
+        $diced_size_table.uniref50 AS uniref50
+    FROM $diced_net_table
+    LEFT JOIN $diced_size_table ON $diced_net_table.cluster_id = $diced_size_table.cluster_id
+    WHERE $diced_net_table.parent_id = :id
+SQL;
+    //DEBUG TODO
+    $has_legacy_bug = false;
+    //$has_legacy_bug = USE_UNIPROT_ID_JOIN == false;
     if ($ascore)
-        $sql .= " AND dicing.alignment_score = :ascore";
+        $sql .= " AND $diced_net_table.$ascore_col = :ascore"
+            . " AND $diced_size_table.$ascore_col = :ascore";
     $sth = $db->prepare($sql);
     if (!$sth)
         return array();
-    
     $row_fn = function($row) {
         return array("id" => $row["cluster_id"],
             "size" => array("uniprot" => $row["uniprot"], "uniref50" => $row["uniref50"], "uniref90" => $row["uniref90"]));
     };
 
     $sth->bindValue("id", $cluster_id);
-    if ($ascore)
-        $sth->bindValue("ascore", $ascore);
+    if (!$has_legacy_bug && $ascore)
+        $sth->bindValue("$ascore_col", $ascore);
     $sth->execute();
     $data = array();
     while ($row = $sth->fetch()) {
@@ -402,16 +438,45 @@ function get_dicing_children($db, $cluster_id, $ascore = "") {
     return $data;
 }
 
+
+//function get_dicing_children($db, $cluster_id, $ascore = "") {
+//    $sql = "SELECT diced_network.cluster_id AS cluster_id, diced_size.uniprot AS uniprot, diced_size.uniref90 AS uniref90, diced_size.uniref50 AS uniref50 FROM diced_network LEFT JOIN diced_size ON diced_network.cluster_id = diced_size.cluster_id WHERE parent_id = :id";
+//    if ($ascore)
+//        $sql .= " AND diced_network.ascore = :ascore";
+//    $sth = $db->prepare($sql);
+//    if (!$sth)
+//        return array();
+//    
+//    $row_fn = function($row) {
+//        return array("id" => $row["cluster_id"],
+//            "size" => array("uniprot" => $row["uniprot"], "uniref50" => $row["uniref50"], "uniref90" => $row["uniref90"]));
+//    };
+//
+//    $sth->bindValue("id", $cluster_id);
+//    if ($ascore)
+//        $sth->bindValue("ascore", $ascore);
+//    $sth->execute();
+//    $data = array();
+//    while ($row = $sth->fetch()) {
+//        array_push($data, $row_fn($row));
+//    }
+//
+//    return $data;
+//}
+
+
 function get_alt_ssns($db, $cluster_id) {
-    $sql = "SELECT * FROM ssn WHERE cluster_id = :id AND alignment_score != ''";
+    $table = DICED_SSN;
+    $ascore_col = ASCORE_COL;
+    $sql = "SELECT * FROM $table WHERE cluster_id = :id AND $ascore_col != ''";
     $row_fn = function($row) {
-        return array($row["alignment_score"]);
+        return array($row[ASCORE_COL]);
     };
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
 }
 
 function get_sizes($db, $id, $is_child = false) {
-    $table = $is_child ? "size_diced" : "size";
+    $table = $is_child ? DICED_SIZE : "size";
     $sql = "SELECT * FROM $table WHERE cluster_id = :id";
     $row_fn = function($row) {
         return array("uniprot" => $row["uniprot"], "uniref90" => $row["uniref90"], "uniref50" => $row["uniref50"]);

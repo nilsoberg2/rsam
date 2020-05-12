@@ -49,6 +49,8 @@ class functions {
         $check_fn = function($db, $id, $table_name, $col_name) {
             $sql = "SELECT $col_name FROM $table_name WHERE cluster_id = :id";
             $sth = $db->prepare($sql);
+            if (!$sth)
+                return false;
             $sth->bindValue("id", $id);
             if (!$sth->execute())
                 return false;
@@ -60,7 +62,8 @@ class functions {
 
         if ($check_fn($db, $id, "network", "name"))
             return true;
-        else if ($check_fn($db, $id, "id_mapping_diced", "uniprot_id"))
+        else if ($check_fn($db, $id, "diced_network", "cluster_id"))
+        //else if ($check_fn($db, $id, "diced_id_mapping", "uniprot_id"))
             return true;
         else
             return false;
@@ -98,17 +101,27 @@ class functions {
         }
         return $check_only ? 0 : $data;
     }
-    public static function get_dicing_parent($db, $cluster_id) {
-        $sql = functions::get_generic_sql("dicing", "parent_id");
-        $row_fn = function($row) {
+    public static function get_dicing_parent($db, $cluster_id, $ascore = "") {
+//        $sql = "SELECT parent_id FROM dicing WHERE cluster_id = :id";
+        $sql = "SELECT parent_id FROM diced_network WHERE cluster_id = :id";
+        if ($ascore)
+            $sql .= " AND ascore = :ascore";
+        $sth = $db->prepare($sql);
+        if (!$sth)
+            return array();
+        $sth->bindValue("id", $cluster_id);
+        if ($ascore)
+            $sth->bindValue("ascore", $ascore);
+        $sth->execute();
+        $row = $sth->fetch();
+        if (isset($row) && isset($row["parent_id"]))
             return $row["parent_id"];
-        };
-        $data = functions::get_generic_fetch($db, $cluster_id, $sql, $row_fn, true); // true = return only first row in this case;
-        return isset($data) ? $data : "";
+        else
+            return "";
     }
     // Same as get_data_dir_path but checks for dicing
     public static function get_data_dir_path2($db, $version, $ascore, $cluster_id) {
-        $parent_cluster_id = functions::get_dicing_parent($db, $cluster_id);
+        $parent_cluster_id = functions::get_dicing_parent($db, $cluster_id, $ascore);
         $child_cluster_id = "";
         if ($parent_cluster_id) {
             $child_cluster_id = $cluster_id;

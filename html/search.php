@@ -80,11 +80,11 @@ if ($type == "seq") {
     $id = $db->escapeString($query);
 
     // First check if this is in the diced clusters.
-    $ascore_sql = "SELECT cluster_id, alignment_score FROM id_mapping_diced WHERE uniprot_id = '$id'";
+    $ascore_sql = "SELECT cluster_id, ascore FROM diced_id_mapping WHERE uniprot_id = '$id'";
     $results = $db->query($ascore_sql);
     $cluster_id = array();
     while ($row = $results->fetchArray()) {
-        $cluster_id[$row["alignment_score"]] = $row["cluster_id"];
+        $cluster_id[$row["ascore"]] = $row["cluster_id"];
     }
 
     if (count($cluster_id) == 0) {

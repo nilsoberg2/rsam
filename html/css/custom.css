@@ -153,7 +153,7 @@ ul.expandable li:before {
     border-color: #999;
 }
 
-.tab-pane h5 {
+.tab-pane h5, .tab-pane h4, .tab-pane h3 {
     margin-top: 15px;
 }
 
