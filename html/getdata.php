@@ -38,7 +38,7 @@ if (!validate_action($action) || ($cluster_id && !functions::validate_cluster_id
 $data = array("valid" => true, "message" => "");
 
 if ($action == "kegg") {
-    $kegg = get_kegg($db, $cluster_id);
+    $kegg = get_kegg($db, $cluster_id, $ascore);
     if ($kegg === false) {
         $data["valid"] = false;
         $data["message"] = "KEGG error.";
@@ -58,7 +58,7 @@ if ($action == "kegg") {
         $data["enzymecodes"] = get_enzyme_codes($db);
     }
 } else if ($action == "tax") {
-    $tax = get_tax_data($db, $cluster_id);
+    $tax = get_tax_data($db, $cluster_id, $ascore);
     if ($tax  === false) {
         $data["valid"] = false;
         $data["message"] = "Retrieval error.";
@@ -331,6 +331,10 @@ function get_generic_join_sql($table, $parm, $extra_where = "", $ascore = "", $c
     if (USE_UNIPROT_ID_JOIN) {
         $join_table = $ascore ? DICED_ID_MAPPING : "id_mapping";
         $sql = "SELECT $parm FROM $table INNER JOIN $join_table ON $table.uniprot_id = $join_table.uniprot_id WHERE $join_table.cluster_id = :id";
+        if ($ascore)
+            $sql .= " AND $join_table.ascore = '$ascore'";
+        if ($extra_where)
+            $sql .= " $extra_where";
         if ($check_only)
             $sql .= " LIMIT 1";
         return $sql;
@@ -357,7 +361,7 @@ function get_kegg($db, $cluster_id, $ascore = "", $check_only = false) {
 
 function get_swissprot($db, $cluster_id, $ascore = "", $check_only = false) {
     $sql = get_generic_join_sql("swissprot", "function, GROUP_CONCAT(swissprot.uniprot_id) AS ids", "GROUP BY function ORDER BY function", $ascore, $check_only);
-    $row_fn = function($row) { return array($row["function"], $row["ids"]); };
+    $row_fn = function($row) { return ($row["function"] && $row["ids"]) ? array($row["function"], $row["ids"]) : false; };
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
 }
 
@@ -496,8 +500,9 @@ function get_sizes($db, $id, $is_child = false) {
      */
 }
 
-function get_tax_data($db, $cluster_id) {
-    $sql = "SELECT * FROM taxonomy WHERE cluster_id = :id";
+function get_tax_data($db, $cluster_id, $ascore) {
+    $sql = get_generic_join_sql("taxonomy", "*", "", $ascore);
+    //$sql = "SELECT * FROM taxonomy WHERE cluster_id = :id";
     $sth = $db->prepare($sql);
     if (!$sth)
         return array();

@@ -97,7 +97,9 @@ class functions {
         while ($row = $sth->fetch()) {
             if ($check_only)
                 return $handle_row_fn($row);
-            array_push($data, $handle_row_fn($row));
+            $data_row = $handle_row_fn($row);
+            //if (is_array($data_row))
+                array_push($data, $data_row);
         }
         return $check_only ? 0 : $data;
     }

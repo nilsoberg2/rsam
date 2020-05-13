@@ -72,8 +72,14 @@ Network.prototype.hasKeggIds = function() {
     return typeof this.data.public.has_kegg !== "undefined" ? this.data.public.has_kegg : false;
 }
 // ASYNC
-Network.prototype.getKeggIds = function(addKeggIdFn, finishFn) {
-    $.get("getdata.php", {a: "kegg", cid: this.Id}, function(dataStr) {
+Network.prototype.getKeggIds = function(version, addKeggIdFn, finishFn) {
+    var parms = {a: "kegg", cid: this.Id};
+    var ascore = this.getAlignmentScore();
+    if (ascore)
+        parms.as = ascore;
+    if (version)
+        parms.v = version;
+    $.get("getdata.php", parms, function(dataStr) {
         var data = false;
         try {
             data = JSON.parse(dataStr);

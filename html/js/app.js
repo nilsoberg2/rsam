@@ -240,9 +240,9 @@ App.prototype.initTabPages = function() {
         var table = $('<table class="table table-sm text-center w-auto"></table>');
         for (var ri = 0; ri < consResTypes.length; ri++) {
             var consRes = consResTypes[ri];
-            var bodyRes = $('<tbody></tbody>');
-            bodyRes.append('<tr><td colspan="3" class="file-header-row">' + consRes + '</td></tr>');
-            table.append(bodyRes);
+            //var bodyRes = $('<tbody></tbody>');
+            //bodyRes.append('<tr><td colspan="3" class="file-header-row">' + consRes + '</td></tr>');
+            //table.append(bodyRes);
             var body = $('<tbody></tbody>');
             var res = consRes.toLowerCase();
             //body.append('<tr><td>' + this.getDownloadButton("crpo"+res) + '</td><td>Consensus residue position summary table</td><td>&lt;1 MB</td></tr>');
@@ -405,16 +405,20 @@ App.prototype.addDisplayFeatures = function () {
             div.append(dlDiv);
             div.append('<div style="clear: both"></div>');
 
+            var fileName = "filtered";
+            var dlType = "hist_filt";
             if (this.alignmentScore) {
                 div.append('<h5>Length Histogram for Node Sequences (UniRef50 IDs)</h5>');
+                fileName = "uniref50";
+                dlType = "hist_ur50";
             } else {
                 div.append('<h5>Length-Filtered Histogram for Node Sequences (UniRef50 IDs) &mdash; Used for MSA, WebLogo, and HMM</h5>');
             }
             div.append('<div></div>')
-                .append('<img src="' + this.dataDir + '/length_histogram_filtered_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
+                .append('<img src="' + this.dataDir + '/length_histogram_' + fileName + '_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
             
             dlBtn = $('<i class="fas fa-download download-btn" data-toggle="tooltip" title="Download high-resolution"></i>');
-            dlBtn.click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist_filt"); });
+            dlBtn.click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl(dlType); });
             dlDiv = $('<div class="float-right"></div>').append(dlBtn);
             div.append(dlDiv);
             div.append('<div style="clear: both"></div>');
@@ -632,7 +636,7 @@ App.prototype.checkForKegg = function () {
     var that = this;
     //$("#keggList").append("<div>This cluster contains " + parseInt(this.network.getKeggCount()).toLocaleString() + " KEGG-annotated sequences.</div>");
     $("#dataAvailableKegg").click(function () {
-        that.network.getKeggIds(function (id) {
+        that.network.getKeggIds(that.version, function (id) {
             $("#keggIdList").append('<a href="https://www.genome.jp/dbget-bin/www_bget?' + id + '">' + id + '</a><br>');
             $("#keggIdListClip").append(id + "\n");
         }, function () {
@@ -793,10 +797,14 @@ App.prototype.addSunburstFeature = function() {
         var progress = new Progress($("#sunburstProgressLoader"));
         progress.start();
         $("#sunburstModal").modal();
+        $("#sunburstChart").empty();
+        var parms = {cid: that.network.Id, a: "tax", v: that.version};
+        if (that.alignmentScore)
+            parms.as = that.alignmentScore;
         $.ajax({
             dataType: "json",
             url: "getdata.php",
-            data: {cid: that.network.Id, a: "tax", v: that.version},
+            data: parms,
             success: function(treeData) {
                 if (typeof(treeData.valid) !== "undefined" && treeData.valid === "false") {
                     //TODO: handle error

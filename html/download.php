@@ -121,7 +121,7 @@ function filter_type($type) {
         "hist" => array("length_histogram_lg.png", "length_histogram_uniprot.zip"),
         "hist_filt" => array("length_histogram_filtered_lg.png"),
         "hist_up" => array("length_histogram_uniprot.zip"),
-        "hist_ur50" => array("length_histogram_uniref50.png", "length_histogram_uniref50.zip"),
+        "hist_ur50" => array("length_histogram_uniref50_lg.png", "length_histogram_uniref50.zip"),
         "msa" => array("msa.afa", "msa.zip"),
         "uniprot_id" => array("uniprot.txt", "uniprot.zip"),
         "uniref50_id" => array("uniref50.txt", "uniref50.zip"),
