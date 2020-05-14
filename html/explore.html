@@ -20,9 +20,9 @@
 
         <div class="navbar-collapse collapse w-100 order-3" id="navbarNavItems">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a class="nav-link active" href="explore.html?v=2.1">Explore 2.1</a></li>
-                <li class="nav-item"><a class="nav-link" href="explore.html?v=2.0">Explore 2.0</a></li>
-                <li class="nav-item"><a class="nav-link" href="explore.html?v=1.0">Explore 1.0</a></li>
+                <li class="nav-item"><a class="nav-link active" href="explore.html?v=2.1">Explore</a></li>
+                <!--                <li class="nav-item"><a class="nav-link" href="explore.html?v=2.0">Explore 2.0</a></li>-->
+                <!--                <li class="nav-item"><a class="nav-link" href="explore.html?v=1.0">Explore 1.0</a></li>-->
                 <li class="nav-item"><a class="nav-link" href="search.html">Search</a></li>
                 <li class="nav-item"><a class="nav-link" href="submit.html">Submit</a></li>
                 <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
@@ -46,7 +46,7 @@
                     </div>
                     <div style="clear:both"></div>
                     <div>
-                        <div class="float-right"><i class="fas fa-download download-btn" data-toggle="tooltip" title="Download high-resolution" id="downloadClusterImage"></i></div>
+                        <div class="float-right download-btn" data-toggle="tooltip" title="Download high-resolution" id="downloadClusterImage">PNG <i class="fas fa-download"></i></div>
                         <div class="data-available float-left" id="dataAvailable" style="display: none">
                             <button class="btn btn-outline-secondary disabled" type="button" id="dataAvailableSp">Swiss-Prot</button>
                             <button class="btn btn-outline-secondary disabled" type="button" id="dataAvailableKegg">KEGG</button>
@@ -94,7 +94,7 @@
                     </div>
                     <div class="tab-pane fade child-tab-pane show"         id="childLogo"      role="tabpanel" aria-labelledby="tab-child-logo">
                     </div>
-                    <div class="tab-pane fade child-tab-pane show"         id="childConsRes"   role="tabpanel" aria-labelledby="tab-child-cons-res">
+                    <div class="tab-pane fade child-tab-pane show"         id="childConsRes"   role="tabpanel" aria-labelledby="tab-child-cons-res" style="min-height: 500px">
                     </div>
                     <div class="tab-pane fade child-tab-pane show"         id="childHmm"       role="tabpanel" aria-labelledby="tab-child-hmm">
                     </div>
@@ -127,8 +127,8 @@
                     </div>
                     <div id="weblogoContainer" class="col" style="display: none">
                         <h5>WebLogo</h5>
+                        <div class="float-right download-btn" data-toggle="tooltip" title="Download high-resolution" id="downloadWeblogoImage">PNG <i class="fas fa-download"></i></div>
                         <div id="weblogo"></div>
-                        <div class="float-right"><i class="fas fa-download download-btn" data-toggle="tooltip" title="Download high-resolution" id="downloadWeblogoImage"></i></div>
                     </div>
                 </div>
             </div>
@@ -289,8 +289,11 @@
                 <div class="modal-body text-center modal-sunburst">
                     <div id="sunburstChart">
                     </div>
+                    Click on a region to zoom into that part of the taxonomic hierarchy.  Clicking on the
+                    center circle will zoom out to the next highest level.
                 </div>
                 <div class="modal-footer">
+                    <button type="button" class="btn btn-default mr-auto" data-toggle="tooltip" title="Download the UniProt IDs that are visible in the sunburst diagram">Download IDs</button>
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>

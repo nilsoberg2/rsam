@@ -1,6 +1,6 @@
 
 $(document).ready(function() {
-    var url = "search.php";
+    var searchApp = "dosearch.php";
 
     var getVersion = function() {
         var v = $("#version").val();
@@ -27,7 +27,7 @@ $(document).ready(function() {
         var version = getVersion();
         var progress = new Progress($("#progressLoader"));
         progress.start();
-        $.post(url, {t: "seq", query: seq, v: version}, function(dataStr) {
+        $.post(searchApp, {t: "seq", query: seq, v: version}, function(dataStr) {
             var data = JSON.parse(dataStr);
             if (data.status !== true) {
                 $("#searchSeqErrorMsg").text(data.message).show();
@@ -109,7 +109,7 @@ $(document).ready(function() {
     var searchIdFn = function() {
         var idVal = $("#searchId").val();
         var version = getVersion();
-        $.post(url, {t: "id", query: idVal, v: version}, function(dataStr) {
+        $.post(searchApp, {t: "id", query: idVal, v: version}, function(dataStr) {
             var data = JSON.parse(dataStr);
             console.log(data.status);
             if (data.status !== true) {
@@ -145,7 +145,7 @@ $(document).ready(function() {
         var termVal = $("#searchTaxTerm").val();
         var termType = getSearchTaxType();
         var version = getVersion();
-        $.post(url, {t: "tax", query: termVal, type: termType, v: version}, function(dataStr) {
+        $.post(searchApp, {t: "tax", query: termVal, type: termType, v: version}, function(dataStr) {
             var data = JSON.parse(dataStr);
             if (data.status !== true) {
                 $("#searchTaxTermErrorMsg").text(data.message).show();
@@ -213,9 +213,9 @@ $(document).ready(function() {
     var taxSearch = new Bloodhound({
         datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
         queryTokenizer: Bloodhound.tokenizers.whitespace,
-        prefetch: 'search.php?t=tax-prefetch',
+        prefetch: searchApp + '?t=tax-prefetch',
         remote: {
-            url: 'search.php?t=tax-auto&query=%QUERY',
+            url: searchApp + '?t=tax-auto&query=%QUERY',
             wildcard: '%QUERY'
             //prepare: function(query, settings) { return "search.php?t=tax-auto&query=" + query + "&type=" + getSearchTaxType(); }
         }

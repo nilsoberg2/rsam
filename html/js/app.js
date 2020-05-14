@@ -394,35 +394,41 @@ App.prototype.addDisplayFeatures = function () {
             $("#downloadWeblogoImage").click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("weblogo"); });
             $("#weblogoContainer").show();
         } else if (feat[i] == "length_histogram") {
-            var dlBtn = $('<i class="fas fa-download download-btn" data-toggle="tooltip" title="Download high-resolution"></i>');
-            dlBtn.click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist"); });
-            var dlDiv = $('<div class="float-right"></div>').append(dlBtn);
+            var mainDiv = $("<div></div>");
+
+            var dlBtn = $('<i class="fas fa-download"></i>');
+            var dlDiv = $('<div class="float-right download-btn" data-toggle="tooltip" title="Download high-resolution">PNG </div>').append(dlBtn);
+            dlDiv.click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl("hist"); });
             
-            var div = $("<div></div>");
-            div.append('<h5>Length Histogram for All Sequences (UniProt IDs)</h5>');
-            div.append('<div></div>')
+            mainDiv.append('<h5>Length Histogram for All Sequences (UniProt IDs)</h5>');
+            // First download
+            mainDiv.append(dlDiv);
+            mainDiv.append('<div style="clear: both"></div>');
+            // Then image
+            mainDiv.append('<div></div>')
                 .append('<img src="' + this.dataDir + '/length_histogram_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
-            div.append(dlDiv);
-            div.append('<div style="clear: both"></div>');
 
             var fileName = "filtered";
             var dlType = "hist_filt";
             if (this.alignmentScore) {
-                div.append('<h5>Length Histogram for Node Sequences (UniRef50 IDs)</h5>');
+                mainDiv.append('<h5>Length Histogram for Node Sequences (UniRef50 IDs)</h5>');
                 fileName = "uniref50";
                 dlType = "hist_ur50";
             } else {
-                div.append('<h5>Length-Filtered Histogram for Node Sequences (UniRef50 IDs) &mdash; Used for MSA, WebLogo, and HMM</h5>');
+                mainDiv.append('<h5>Length-Filtered Histogram for Node Sequences (UniRef50 IDs) &mdash; Used for MSA, WebLogo, and HMM</h5>');
             }
-            div.append('<div></div>')
+            // First download
+            dlBtn = $('<i class="fas fa-download"></i>');
+            dlDiv = $('<div class="float-right download-btn" data-toggle="tooltip" title="Download high-resolution">PNG </div>').append(dlBtn);
+            dlDiv.click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl(dlType); });
+            mainDiv.append(dlDiv);
+            mainDiv.append('<div style="clear: both"></div>');
+
+            // Then image
+            mainDiv.append('<div></div>')
                 .append('<img src="' + this.dataDir + '/length_histogram_' + fileName + '_sm.png" alt="Length histogram for ' + this.network.Id + '" class="display-img-width">');
             
-            dlBtn = $('<i class="fas fa-download download-btn" data-toggle="tooltip" title="Download high-resolution"></i>');
-            dlBtn.click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl(dlType); });
-            dlDiv = $('<div class="float-right"></div>').append(dlBtn);
-            div.append(dlDiv);
-            div.append('<div style="clear: both"></div>');
-            $("#lengthHistogramContainer").append(div).show();
+            $("#lengthHistogramContainer").append(mainDiv).show();
         }
     }
     return hasData;

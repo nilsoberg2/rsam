@@ -130,7 +130,7 @@ function get_cluster($db, $cluster_id, $ascore, $version) {
     $data["desc"] = $info["desc"];
     $data["image"] = $cluster_id;
     $data["public"]["has_kegg"] = get_kegg($db, $cluster_id, $ascore, true);
-    $data["size"] = get_sizes($db, $cluster_id, $is_child);
+    $data["size"] = get_sizes($db, $cluster_id, $ascore, $is_child);
     $data["public"]["swissprot"] = get_swissprot($db, $cluster_id, $ascore);
     $data["public"]["pdb"] = get_pdb($db, $cluster_id, $ascore);
     $data["families"]["tigr"] = get_tigr($db, $cluster_id);
@@ -479,9 +479,11 @@ function get_alt_ssns($db, $cluster_id) {
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
 }
 
-function get_sizes($db, $id, $is_child = false) {
+function get_sizes($db, $id, $ascore = "", $is_child = false) {
     $table = $is_child ? DICED_SIZE : "size";
     $sql = "SELECT * FROM $table WHERE cluster_id = :id";
+    if ($ascore && $is_child)
+        $sql .= " AND ascore = '$ascore'";
     $row_fn = function($row) {
         return array("uniprot" => $row["uniprot"], "uniref90" => $row["uniref90"], "uniref50" => $row["uniref50"]);
     };
