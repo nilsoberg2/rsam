@@ -286,14 +286,22 @@
                     <h5 class="modal-title">Species in Cluster</h5>
                     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
                 </div>
-                <div class="modal-body text-center modal-sunburst">
+                <div class="modal-body text-center modal-sunburst" id="sunburstChartContainer">
                     <div id="sunburstChart">
                     </div>
-                    Click on a region to zoom into that part of the taxonomic hierarchy.  Clicking on the
-                    center circle will zoom out to the next highest level.
+                    <div>
+                        Click on a region to zoom into that part of the taxonomic hierarchy.  Clicking on the
+                        center circle will zoom out to the next highest level.
+                    </div>
+<!--
+                    <div>
+                        <canvas id="sunburstPngCanvas" width="600" height="600"></canvas>
+                    </div>
+-->
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-default mr-auto" data-toggle="tooltip" title="Download the UniProt IDs that are visible in the sunburst diagram">Download IDs</button>
+<!--                    <button type="button" class="btn btn-default mr-auto" data-toggle="tooltip" title="Download a SVG file of the sunburst diagram" id="sunburstSvg">Download SVG</button>-->
                     <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
                 </div>
             </div>

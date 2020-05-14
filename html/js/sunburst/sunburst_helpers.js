@@ -128,7 +128,6 @@ function getSunburstColorFn() {
     };
     
     return function(d, g) { // data object, graphics object
-        console.log(g);
         var K = getKingdom(d, g);
         // Root
         if (!K || K == "Root")

@@ -68,7 +68,7 @@ App.prototype.getDownloadButton = function (fileType) {
 }
 App.prototype.getDownloadSize = function (fileType) {
     //TODO: implement this
-    return '&lt; 1 MB';
+    return "";//'&lt; 1 MB';
 }
 
 
@@ -224,9 +224,10 @@ App.prototype.initTabPages = function() {
         var table = $('<table class="table table-sm text-center w-auto"></table>');
         var body = $('<tbody></tbody>');
         for (var i = 0; i < data.length; i++) {
-            body.append('<tr><td>' + that.getDownloadButton(data[i][0]) + '</td><td>' + data[i][1] + '</td><td>'
+            body.append('<tr><td>' + that.getDownloadButton(data[i][0]) + '</td><td>' + data[i][1] + '</td></tr>');
+                    //<td>'
                     //+ that.getDownloadSize(data[i][0])
-                    + '</td></tr>');
+                    //+ '</td></tr>');
         }
         table.append(body);
         return table;
@@ -435,14 +436,13 @@ App.prototype.addDisplayFeatures = function () {
 }
 App.prototype.addDownloadFeatures = function (containerId, hideTabStuff = false) {
     var feat = this.network.getDownloadFeatures();
-    console.log(feat);
     if (feat.length == 0)
         return false;
 
     var isDiced = this.network.getDicedParent().length > 0;
 
     var table = $('<table class="table table-sm text-center w-auto"></table>');
-    table.append('<thead><tr><th>Download</th><th>File Type</th><th>Size</th></thead>');
+    table.append('<thead><tr><th>Download</th><th>File Type</th></thead>');//<th>Size</th></thead>');
     var body = $('<tbody>');
     table.append(body);
 
@@ -451,15 +451,15 @@ App.prototype.addDownloadFeatures = function (containerId, hideTabStuff = false)
         if (feat[i] == "gnn") {
         } else if (feat[i] == "ssn") {
             var parentSsnText = isDiced ? " (for parent cluster)" : "";
-            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".zip") + '</td><td>Sequence Similarity Network' + parentSsnText + '</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
+            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".zip") + '</td><td>Sequence Similarity Network' + parentSsnText + '</td></tr>');//<td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         //} else if (feat[i] == "cons") { // consensus residue
-        //    body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".txt") + '</td><td>Consensus Residues</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
+        //    body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".txt") + '</td><td>Consensus Residues</td></tr>');//<td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         } else if (feat[i] == "weblogo" && !hideTabStuff) {
-            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".png") + '</td><td>WebLogo for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
+            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".png") + '</td><td>WebLogo for Length-Filtered Node Sequences</td></tr>');//<td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         } else if (feat[i] == "msa" && !hideTabStuff) {
-            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".afa") + '</td><td>MSA for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
+            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".afa") + '</td><td>MSA for Length-Filtered Node Sequences</td></tr>');//<td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         } else if (feat[i] == "hmm" && !hideTabStuff) {
-            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".hmm") + '</td><td>HMM for Length-Filtered Node Sequences</td><td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
+            body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".hmm") + '</td><td>HMM for Length-Filtered Node Sequences</td></tr>');//<td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
             if (!hideTabStuff) {
                 var logoParms = "";
                 var logoParms = 'cid=' + this.network.Id;
@@ -485,7 +485,7 @@ App.prototype.addDownloadFeatures = function (containerId, hideTabStuff = false)
             table.append(body);
 
             for (var k = 0; k < t.length; k++) {
-                body.append('<tr><td>' + this.getDownloadButton(t[k].key) + '</td><td>' + t[k].desc + '</td><td>' + this.getDownloadSize(t[k].key) + '</td></tr>');
+                body.append('<tr><td>' + this.getDownloadButton(t[k].key) + '</td><td>' + t[k].desc + '</td></tr>');//<td>' + this.getDownloadSize(t[k].key) + '</td></tr>');
             }
         } else if (feat[i] == "misc") {
             var t = [
@@ -499,7 +499,7 @@ App.prototype.addDownloadFeatures = function (containerId, hideTabStuff = false)
             table.append(body);
 
             for (var k = 0; k < t.length; k++) {
-                body.append('<tr><td>' + this.getDownloadButton(t[k].key) + '</td><td>' + t[k].desc + '</td><td>' + this.getDownloadSize(t[k].key) + '</td></tr>');
+                body.append('<tr><td>' + this.getDownloadButton(t[k].key) + '</td><td>' + t[k].desc + '</td></tr>');//<td>' + this.getDownloadSize(t[k].key) + '</td></tr>');
             }
         }
     }
@@ -790,6 +790,22 @@ App.prototype.addAltSsns = function (div) {
 App.prototype.showSunburst = function() {
 }
 
+function triggerDownload (imgURI) {
+  var evt = new MouseEvent('click', {
+    view: window,
+    bubbles: false,
+    cancelable: true
+  });
+
+  var a = document.createElement('a');
+  a.setAttribute('download', 'MY_COOL_IMAGE.png');
+  a.setAttribute('href', imgURI);
+  a.setAttribute('target', '_blank');
+
+  a.dispatchEvent(evt);
+}
+
+
 
 App.prototype.addSunburstFeature = function() {
     var hasData = this.network.getDisplayFeatures().length > 0;
@@ -798,6 +814,49 @@ App.prototype.addSunburstFeature = function() {
 
     var that = this;
     var Colors = getSunburstColorFn();
+
+    // Doesn't work
+    //var setupPngDownload = function() {
+    //    var svg = $("#sunburstChart svg")[0];
+    //    var canvasObj = $("#sunburstPngCanvas");
+    //    var canvas = canvasObj[0];
+    //    $("#sunburstPng").click(function() {
+    //        var ctx = canvas.getContext('2d');
+    //        var data = (new XMLSerializer()).serializeToString(svg);
+    //        var DOMURL = window.URL || window.webkitURL || window;
+    //      
+    //        var img = new Image();
+    //        var svgBlob = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
+    //        var url = DOMURL.createObjectURL(svgBlob);
+    //      
+    //        img.onload = function () {
+    //            ctx.drawImage(img, 0, 0);
+    //            DOMURL.revokeObjectURL(url);
+    //      
+    //            var imgURI = canvas
+    //                .toDataURL('image/png')
+    //                .replace('image/png', 'image/octet-stream');
+    //      
+    //            //triggerDownload(imgURI);
+    //        };
+    //        img.src = url;
+    //    });
+    //};
+
+    var setupSvgDownload = function() {
+        var svg = $("#sunburstChart svg")[0];
+        $("#sunburstSvg").click(function() {
+            var svgData = svg.outerHTML;
+            var svgBlob = new Blob([svgData], {type:"image/svg+xml;charset=utf-8"});
+            var svgUrl = URL.createObjectURL(svgBlob);
+            var downloadLink = document.createElement("a");
+            downloadLink.href = svgUrl;
+            downloadLink.download = "newesttree.svg";
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+            document.body.removeChild(downloadLink);
+        });
+    };
 
     $("#dataAvailableSunburst").click(function() {
         var progress = new Progress($("#sunburstProgressLoader"));
@@ -823,9 +882,11 @@ App.prototype.addSunburstFeature = function() {
                         .label("node")
                         .size("numSpecies")
                         .color(Colors)
+                        .excludeRoot(true)
                         //.color((d, parent) => color(parent ? parent.data.name : null))
                         //.tooltipContent((d, node) => `Size: <i>${node.value}</i>`)
                         (document.getElementById("sunburstChart"));
+                    //setupSvgDownload();
                     progress.stop();
                 }
             }

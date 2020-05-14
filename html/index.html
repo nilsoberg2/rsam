@@ -38,7 +38,7 @@
         <div class="container">
             <div class="container">
                 <p>
-                RadicalSAM.org enables the use of the EFI’s genomic enzymology web tools for studies of the radical SAM superfamily (RSS) by providing:
+                RadicalSAM.org enables the use of the EFI's genomic enzymology web tools for studies of the radical SAM superfamily (RSS) by providing:
                 </p>
 
                 <ol class="mb-5">
@@ -88,7 +88,7 @@
 
                         <p>
                         The RSS is arguably the largest and most functionally diverse enzyme superfamily.  As of February 2020, the RSS
-                        included 540,320 sequences (InterPro families IPR007197 and IPR006638 from Release 78 of the InterPro
+                        included 571,785 sequences (InterPro families IPR007197 and IPR006638 from Release 78 of the InterPro
                         database/Release 2020_01 of the UniProt database).
                         </p>
 
@@ -98,8 +98,8 @@
                         that binds S-adenosyl methionine (SAM);
                         one-electron reduction of the bound SAM yields a 5&prime;-deoxyadenosyl radical (5&prime;-dAdo&bull;) and Met.
                         The 5&prime;-dAdo&bull; generates a substrate radical (R&bull;) (and 5&prime;-deoxyadenosine) that undergoes intriguing and often
-                        complex chemistry to yield the product 
-                        (doi: <a target="_blank" href="http://doi.org/10.1016/bs.mie.2018.05.001">10.1016/bs.mie.2018.05.001</a>).
+                        complex chemistry to yield the product.
+                        <!--(doi: <a target="_blank" href="http://doi.org/10.1016/bs.mie.2018.05.001">10.1016/bs.mie.2018.05.001</a>).-->
                         </p>
 
                         <p>
@@ -173,6 +173,7 @@
                         We generated the reference SSN for RadicalSAM.org using the 44,060 UniRef50 IDs with 
                         UniProt-defined "complete" sequences in families IPR007197 and IP006638 as defined 
                         by InterPro 78 (based on UniProt 2020_01).  
+                        These UniRef50 clusters contain 544,274 UniProt IDs.
                         </p>
 
                         <p>
@@ -243,7 +244,7 @@
                         </p>
                         
                         <p>
-                        In contrast to the SFLD’s SSN (<i>vide supra</i>), the clusters for the subgroups are not separated in 
+                        In contrast to the SFLD's SSN (<i>vide supra</i>), the clusters containing the subgroups are not separated in 
                         this SSN (a single cluster!), the result of both the larger number of nodes and the choice of a 
                         smaller alignment score to both prevent splitting SFLD subgroups into multiple clusters and, 
                         also, reduce the number of singletons.  
@@ -333,7 +334,8 @@
                         </p>
 
                         <p>
-                        Where indicated on the <a href="explore.html" target="_blank">Explore</a> pages for Megaclusters-2, -3, and -4, several of the clusters were
+                        Where indicated on the <a href="explore.html" target="_blank">Explore</a> pages for
+                        megaclusters-2, -3, and -4, several of their clusters were
                         further segregated into subclusters so that different SwissProt functions and/or distinct Cys
                         motifs are located in distinct subclusters. 
                         </p>
@@ -357,6 +359,7 @@
                         </p>
 
                         <p>
+                        The xgmml file for the SSN generated with an alignment score of 11 is available for download.  
                         Files with UniProt, UniRef90, and UniRef50 IDs as well as FASTA sequences can be downloaded.  
                         The IDs can be used with Option D of EFI-EST to generate SSNs.
                         </p>
@@ -553,6 +556,14 @@
                             B12-binding domain)</u>,
                         the search identifies the cluster (if &ge;3 nodes/UniRef50 IDs) in each Color SSN that contains the 
                         ID; the cluster is a link to an <a href="explore.html" target="_blank">Explore</a> page for the cluster. 
+                        </p>
+
+                        <p>
+                        The cluster <a target="_blank" href="explore.html">Explore</a> page displays the SSN for the cluster.
+                        The WebLogo generated from the 
+                        MSA for all UniRef50 IDs is displayed; the image of the WebLogo can be downloaded as a png 
+                        file.  The length histograms for to the UniRef50 IDs and UniProt IDs are displayed; their 
+                        images can be downloaded as png files.  
                         </p>
 
                         <p>
