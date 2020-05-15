@@ -63,7 +63,6 @@ class functions {
         if ($check_fn($db, $id, "network", "name"))
             return true;
         else if ($check_fn($db, $id, "diced_network", "cluster_id"))
-        //else if ($check_fn($db, $id, "diced_id_mapping", "uniprot_id"))
             return true;
         else
             return false;
@@ -132,6 +131,30 @@ class functions {
         }
         $basepath = functions::get_data_dir_path($parent_cluster_id, $version, $ascore, $child_cluster_id);
         return $basepath;
+    }
+    public static function send_headers($filename, $filesize, $type = "application/octet-stream") {
+        header('Pragma: public');
+        header('Expires: 0');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Cache-Control: private', false);
+        header('Content-Transfer-Encoding: binary');
+        header('Content-Disposition: attachment; filename="' . $filename . '";');
+        header('Content-Type: ' . $type);
+        header('Content-Length: ' . $filesize);
+    }
+    public static function send_file($file) {
+        $handle = fopen($file, 'rb');
+        self::send_file_handle($handle);
+        fclose($handle);
+    }
+    public static function send_file_handle($handle) {
+        $chunkSize = 1024 * 1024;
+        while (!feof($handle)) {
+            $buffer = fread($handle, $chunkSize);
+            echo $buffer;
+            ob_flush();
+            flush();
+        }
     }
 }
 

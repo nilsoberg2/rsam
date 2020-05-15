@@ -532,6 +532,7 @@ function get_tax_data($db, $cluster_id, $ascore) {
             $tree[$domain][$kingdom][$phylum][$class][$taxorder][$family][$genus][$species] = array("sequences" => array());
         array_push($tree[$domain][$kingdom][$phylum][$class][$taxorder][$family][$genus][$species]["sequences"], array("numDomains" => 0, "seedSeq" => 0, "seqAcc" => $uniprot));
     };
+
     while ($row = $sth->fetch()) {
         $add_data_fn($row["domain"], $row["kingdom"], $row["phylum"], $row["class"], $row["taxorder"], $row["family"], $row["genus"], $row["species"], $row["uniprot_id"]);
     }

@@ -215,8 +215,8 @@
                     <textarea id="keggIdListClip" style="display: none"></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default copy-btn" data-clipboard-target="keggIdListClip" data-id="keggIdListClip"><i class="far fa-copy"></i></button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default mr-auto copy-btn" data-clipboard-target="keggIdListClip" data-id="keggIdListClip">Copy <i class="far fa-copy"></i></button>
+                    <button type="button" class="btn btn-default btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -234,8 +234,8 @@
                     <textarea id="tigrListClip" style="display: none"></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default copy-btn" data-clipboard-target="tigrListClip" data-id="tigrListClip"><i class="far fa-copy"></i></button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default mr-auto copy-btn" data-clipboard-target="tigrListClip" data-id="tigrListClip">Copy <i class="far fa-copy"></i></button>
+                    <button type="button" class="btn btn-default btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -254,8 +254,8 @@
                     <textarea id="spModalIdListClip" style="display: none"></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default copy-btn" data-id="spModalIdListClip"><i class="far fa-copy"></i></button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default mr-auto copy-btn" data-id="spModalIdListClip">Copy <i class="far fa-copy"></i></button>
+                    <button type="button" class="btn btn-default btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -273,8 +273,8 @@
                     <textarea id="pdbIdListClip" style="display: none"></textarea>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default copy-btn" data-id="pdbIdListClip"><i class="far fa-copy"></i></button>
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default mr-auto copy-btn" data-id="pdbIdListClip">Copy <i class="far fa-copy"></i></button>
+                    <button type="button" class="btn btn-default btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -300,12 +300,27 @@
 -->
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-default mr-auto" data-toggle="tooltip" title="Download the UniProt IDs that are visible in the sunburst diagram">Download IDs</button>
+                    <button type="button" class="btn btn-default btn-secondary" data-toggle="tooltip" title="Download the UniProt IDs that are visible in the sunburst diagram" id="sunburstDlIds">Prepare ID Download</button>
+                    <button type="button" class="btn btn-default btn-secondary mr-auto" data-toggle="tooltip" title="Download the FASTA sequences that are visible in the sunburst diagram" id="sunburstDlFasta">Prepare FASTA Download</button>
 <!--                    <button type="button" class="btn btn-default mr-auto" data-toggle="tooltip" title="Download a SVG file of the sunburst diagram" id="sunburstSvg">Download SVG</button>-->
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-default btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
             <div id="sunburstProgressLoader" class="progress-loader" style="display: none">
+                <i class="fas fa-spinner fa-spin"></i>
+            </div>
+        </div>
+    </div>
+    <div id="sunburstDownloadModal" class="modal fade" tabindex="-1" role="dialog" style="margin-top: 200px">
+        <div class="modal-dialog modal-sm" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <h5 style="display: none">Preparing Download</h5>
+                    <button type="button" class="btn btn-primary" id="sbDownloadBtn"><a href="" id="sbDownloadLink">Download List</a></button><br><br>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+            <div id="downloadProgressLoader" class="progress-loader progress-loader-sm" style="display: none">
                 <i class="fas fa-spinner fa-spin"></i>
             </div>
         </div>
