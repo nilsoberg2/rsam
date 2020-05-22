@@ -15,6 +15,7 @@ $cluster_id = filter_input(INPUT_POST, "c", FILTER_SANITIZE_STRING);
 $ascore = filter_input(INPUT_POST, "as", FILTER_SANITIZE_NUMBER_INT);
 $ids = filter_input(INPUT_POST, "ids", FILTER_SANITIZE_STRING);
 $org = filter_input(INPUT_POST, "o", FILTER_SANITIZE_STRING);
+$id_type = filter_input(INPUT_POST, "it", FILTER_SANITIZE_STRING);
 
 $version = functions::validate_version($version);
 
@@ -30,13 +31,22 @@ if (!is_array($ids)) {
     exit(0);
 }
 
+if ($id_type != "uniprot" && $id_type != "uniref50" && $id_type != "uniref90")
+    $id_type = "uniprot";
+
 
 $dir = functions::get_data_dir_path2($db, $version, $ascore, $cluster_id);
 
-$fasta = "$dir/uniprot.fasta";
+$fasta = "$dir/$id_type.fasta";
 
 
+$ids = sanitize_ids($ids);
 $ids = array_fill_keys($ids, "1");
+//if ($id_type == "uniref50" || $id_type == "uniref90") {
+//    $ids = get_uniref_ids($db, $ids, $id_type);
+//} else {
+//    $ids = array_fill_keys($ids, "1");
+//}
 
 $fh = fopen($fasta, "r");
 if (!$fh) {
@@ -74,6 +84,7 @@ if ($ascore)
     $fname .= "_AS$ascore";
 if ($org)
     $fname .= "_$org";
+$fname .= "_$id_type";
 $fname .= ".fasta";
 
 $stats = fstat($temp);
@@ -95,5 +106,29 @@ fclose($temp);
 //        $buffer = array();
 //    }
 //}
+
+
+function get_uniref_ids($db, $uniprot_ids, $id_type) {
+    $uniref_ids = array();
+    foreach ($uniprot_ids as $id) {
+        $sql = "SELECT DISTINCT(${id_type}_id) FROM uniref_map WHERE uniprot_id = '$id'";
+        $sth = $db->prepare($sql);
+        $sth->execute();
+        $row = $sth->fetch();
+        if ($row)
+            $uniref_ids[$row[0]] = 1;
+    }
+    return $uniref_ids;
+}
+
+
+function sanitize_ids($ids_in) {
+    $ids = array();
+    foreach ($ids_in as $id) {
+        if (preg_match("/^[A-Za-z0-9]+$/", $id))
+            array_push($ids, $id);
+    }
+    return $ids;
+}
 
 

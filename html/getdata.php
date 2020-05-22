@@ -178,14 +178,17 @@ function get_network_info_title($row, $sfld_only = false, $child_cluster_id = ""
     if ($child_cluster_id)
         $title .= ' / Mega' . $child_cluster_id;
     if ($row["title"] && $row["sfld_id"]) {
+        $sfld_id_repl = "";
         if ($sfld_only) {
-            $title .= $row["title"];
+            $sfld_id_repl = " [" . $row["sfld_id"] . "]";
+            $title .= $row["title"]; 
         } else {
+            $sfld_id_repl = " / ";
             $title .= ": SFLD Subgroup " . $row["sfld_id"];
             $title .= " / " . $row["title"];
         }
         if (preg_match("/<SFLD>/", $title)) {
-            $title = preg_replace("/<SFLD>/", $row["sfld_desc"], $title);
+            $title = preg_replace("/<SFLD>/", $row["sfld_desc"] . $sfld_id_repl, $title);
         }
     } elseif ($row["sfld_id"]) {
         if (!$sfld_only)
@@ -327,10 +330,10 @@ function get_generic_fetch($db, $cluster_id, $sql, $handle_row_fn, $check_only =
     //return $check_only ? 0 : $data;
 }
 
-function get_generic_join_sql($table, $parm, $extra_where = "", $ascore = "", $check_only = false) {
+function get_generic_join_sql($table, $parm, $extra_where = "", $ascore = "", $check_only = false, $extra_join = "") {
     if (USE_UNIPROT_ID_JOIN) {
         $join_table = $ascore ? DICED_ID_MAPPING : "id_mapping";
-        $sql = "SELECT $parm FROM $table INNER JOIN $join_table ON $table.uniprot_id = $join_table.uniprot_id WHERE $join_table.cluster_id = :id";
+        $sql = "SELECT $parm FROM $table INNER JOIN $join_table ON $table.uniprot_id = $join_table.uniprot_id $extra_join WHERE $join_table.cluster_id = :id";
         if ($ascore)
             $sql .= " AND $join_table.ascore = '$ascore'";
         if ($extra_where)
@@ -503,8 +506,10 @@ function get_sizes($db, $id, $ascore = "", $is_child = false) {
 }
 
 function get_tax_data($db, $cluster_id, $ascore) {
-    $sql = get_generic_join_sql("taxonomy", "*", "", $ascore);
-    //$sql = "SELECT * FROM taxonomy WHERE cluster_id = :id";
+    $uniref_join = "LEFT JOIN uniref_map ON taxonomy.uniprot_id = uniref_map.uniprot_id";
+    $uniref_parm = ", uniref_map.uniref50_id, uniref_map.uniref90_id";
+    $sql = get_generic_join_sql("taxonomy", "taxonomy.* $uniref_parm", "", $ascore, false, $uniref_join);
+    //$sql = get_generic_join_sql("taxonomy", "*", "", $ascore);
     $sth = $db->prepare($sql);
     if (!$sth)
         return array();
@@ -513,7 +518,7 @@ function get_tax_data($db, $cluster_id, $ascore) {
 
     $tree = array();
     #$mk_struct_fn = function($name) { return array("numSpecies" => 0, "node" => $name, "children" => array()); };
-    $add_data_fn = function($domain, $kingdom, $phylum, $class, $taxorder, $family, $genus, $species, $uniprot) use (&$tree) {
+    $add_data_fn = function($domain, $kingdom, $phylum, $class, $taxorder, $family, $genus, $species, $uniprot, $uniref50, $uniref90) use (&$tree) {
         if (!isset($tree[$domain]))
             $tree[$domain] = array();
         if (!isset($tree[$domain][$kingdom]))
@@ -530,11 +535,14 @@ function get_tax_data($db, $cluster_id, $ascore) {
             $tree[$domain][$kingdom][$phylum][$class][$taxorder][$family][$genus] = array();
         if (!isset($tree[$domain][$kingdom][$phylum][$class][$taxorder][$family][$genus][$species]))
             $tree[$domain][$kingdom][$phylum][$class][$taxorder][$family][$genus][$species] = array("sequences" => array());
-        array_push($tree[$domain][$kingdom][$phylum][$class][$taxorder][$family][$genus][$species]["sequences"], array("numDomains" => 0, "seedSeq" => 0, "seqAcc" => $uniprot));
+        $leaf_data = array("numDomains" => 0, "seedSeq" => 0, "seqAcc" => $uniprot, "sa50" => $uniref50, "sa90" => $uniref90);
+        //$leaf_data = array("numDomains" => 0, "seedSeq" => 0, "seqAcc" => $uniprot);
+        array_push($tree[$domain][$kingdom][$phylum][$class][$taxorder][$family][$genus][$species]["sequences"], $leaf_data);
     };
 
     while ($row = $sth->fetch()) {
-        $add_data_fn($row["domain"], $row["kingdom"], $row["phylum"], $row["class"], $row["taxorder"], $row["family"], $row["genus"], $row["species"], $row["uniprot_id"]);
+        $add_data_fn($row["domain"], $row["kingdom"], $row["phylum"], $row["class"], $row["taxorder"], $row["family"], $row["genus"], $row["species"], $row["uniprot_id"], $row["uniref50_id"], $row["uniref90_id"]);
+        //$add_data_fn($row["domain"], $row["kingdom"], $row["phylum"], $row["class"], $row["taxorder"], $row["family"], $row["genus"], $row["species"], $row["uniprot_id"]);
     }
 
     # Convert tree into something that the sunburst libraries like

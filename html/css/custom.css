@@ -81,9 +81,13 @@ footer {
 }
 
 #clusterSize {
-    text-transform: uppercase;
-/*    font-size: 0.8em;*/
     margin-top: 10px;
+}
+.cluster-size {
+    text-transform: uppercase;
+}
+.cluster-size-sm {
+    font-size: 0.9em;
 }
 
 .display-img-width {

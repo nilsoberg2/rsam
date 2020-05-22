@@ -266,7 +266,8 @@ App.prototype.initTabPages = function() {
         var kidId = kids[i].id;
         //var kidSize = {uniprot: 0, uniref50: 0, uniref90: 0};
         var kidSizeRaw = kids[i].size;
-        var kidSize = {uniprot: parseInt(kidSizeRaw.uniprot).toLocaleString(), uniref90: parseInt(kidSizeRaw.uniref90).toLocaleString(), uniref50: parseInt(kidSizeRaw.uniref50).toLocaleString()};
+        var kidSize = {uniprot: commify(kidSizeRaw.uniprot), uniref90: commify(kidSizeRaw.uniref90), uniref50: commify(kidSizeRaw.uniref50)};
+        console.log(kidSize);
         var dataDir = this.dataDir + "/" + kidId;
         var netName = "Mega" + kidId;
         var hist = mkHistoFn(dataDir, kidId, kidSize, netName);
@@ -374,7 +375,7 @@ App.prototype.addClusterSize = function () {
     var size = this.network.getSizes();
     if (size === false)
         return;
-    $("#clusterSize").append('UniProt: <b>' + parseInt(size.uniprot).toLocaleString() + '</b>, UniRef90: <b>' + parseInt(size.uniref90).toLocaleString() + '</b>, UniRef50: <b>' + parseInt(size.uniref50).toLocaleString() + '</b>');
+    $("#clusterSize").append('UniProt: <b>' + commify(size.uniprot) + '</b>, UniRef90: <b>' + commify(size.uniref90) + '</b>, UniRef50: <b>' + commify(size.uniref50) + '</b>');
     $("#clusterSizeContainer").show();
 }
 
@@ -450,7 +451,8 @@ App.prototype.addDownloadFeatures = function (containerId, hideTabStuff = false)
         //"downloads": ["weblogo", "msa", "hmm", "id_fasta", "misc"]
         if (feat[i] == "gnn") {
         } else if (feat[i] == "ssn") {
-            var parentSsnText = isDiced ? " (for parent cluster)" : "";
+            //var parentSsnText = isDiced ? " (for parent cluster)" : "";
+            var parentSsnText = "";
             body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".zip") + '</td><td>Sequence Similarity Network' + parentSsnText + '</td></tr>');//<td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
         //} else if (feat[i] == "cons") { // consensus residue
         //    body.append('<tr><td>' + this.getDownloadButton(feat[i] + ".txt") + '</td><td>Consensus Residues</td></tr>');//<td>' + this.getDownloadSize(feat[i]) + '</td></tr>');
@@ -513,13 +515,14 @@ App.prototype.addDownloadFeatures = function (containerId, hideTabStuff = false)
 // 
 App.prototype.setClusterImage = function (onFinishFn) {
     var img = $("#clusterImg");
-    if (this.network.getDicedParent().length > 0) {
-        var parent = img.parent();
-        parent.addClass("text-center").addClass("p-5");
-        parent.text("Image not available for this cluster");
-        $("#downloadClusterImage").hide();
-        this.progress.stop();
-    } else {
+    {
+    //if (this.network.getDicedParent().length > 0) {
+    //    var parent = img.parent();
+    //    parent.addClass("text-center").addClass("p-5");
+    //    parent.text("Image not available for this cluster");
+    //    $("#downloadClusterImage").hide();
+    //    this.progress.stop();
+    //} else {
         var fileName = this.network.getImage();
         var that = this;
         if (Array.isArray(fileName))
@@ -706,7 +709,7 @@ App.prototype.addSubgroupTable = function (div) {
 
     // If there are cleanly-defined sub-clusters, then the 'regions' property will be present.
     if (this.network.getRegions().length > 0) {
-        var headHtml = '<thead><tr class="text-center"><th>Cluster</th><th>ID Cluster Number</th>';
+        var headHtml = '<thead><tr class="text-center"><th>Cluster</th>';
         if (this.network.Id != "fullnetwork") //TODO: HACK
             headHtml += '<th>SFLD Subgroup</th>';
         headHtml += '<th>UniProt</th><th>UniRef90</th><th>UniRef50</th></tr></thead>';
@@ -723,17 +726,23 @@ App.prototype.addSubgroupTable = function (div) {
             if (!sfldDesc) {
                 for (var i = 0; i < sfldIds.length; i++) {
                     var sfldId = sfldIds[i];
+                    var sfldIdStr = sfldId ? " [" + sfldId + "]" : "";
                     if (sfldDesc.length)
                         sfldDesc += '; ';
-                    sfldDesc += sfldDisplayFn(sfldId, that.network.getSfldDesc(sfldId) + " [" + sfldId + "]");
+                    sfldDesc += sfldDisplayFn(sfldId, that.network.getSfldDesc(sfldId));
+                    //sfldDesc += sfldDisplayFn(sfldId, that.network.getSfldDesc(sfldId) + sfldIdStr);
                 }
             } else {
-                sfldDesc = sfldDisplayFn(sfldIds[0], sfldDesc + " [" + sfldIds.join("; ") + "]");
+                var sfldIdStr = sfldIds.join("; ");
+                if (sfldIdStr)
+                    sfldIdStr = " [" + sfldIdStr + "]";
+                sfldDesc = sfldDisplayFn(sfldIds[0], sfldDesc);
+                //sfldDesc = sfldDisplayFn(sfldIds[0], sfldDesc + sfldIdStr);
             }
-            var rowHtml = "<td>" + data.name + "</td><td>" + data.number + "</td>";
+            var rowHtml = "<td>" + data.name + "</td>";
             if (that.network.Id != "fullnetwork") //TODO: HACK
                 rowHtml += "<td>" + sfldDesc + "</td>";
-            rowHtml += "<td>" + parseInt(size.uniprot).toLocaleString() + "</td><td>" + parseInt(size.uniref90).toLocaleString() + "</td><td>" + parseInt(size.uniref50).toLocaleString() + "</td>";
+            rowHtml += "<td>" + commify(size.uniprot) + "</td><td>" + commify(size.uniref90) + "</td><td>" + commify(size.uniref50) + "</td>";
             row.append(rowHtml);
             body.append(row);
         });
@@ -858,6 +867,13 @@ App.prototype.addSunburstFeature = function() {
         });
     };
 
+    var addCurViewNumSeq = function() {
+        var numUniProt = commify(that.sbCurrentData.numSequences);
+        var idStr = numUniProt > 1 ? "IDs" : "ID";
+        $("#sunburstIdNums").text(numUniProt + " UniProt " + idStr + " visible");
+    };
+
+
     $("#dataAvailableSunburst").click(function() {
         var progress = new Progress($("#sunburstProgressLoader"));
         progress.start();
@@ -877,6 +893,7 @@ App.prototype.addSunburstFeature = function() {
                 } else {
                     that.sbRootData = treeData;
                     that.sbCurrentData = treeData;
+                    addCurViewNumSeq();
                     var sb = Sunburst()
                         .width(600)
                         .height(600)
@@ -890,6 +907,7 @@ App.prototype.addSunburstFeature = function() {
                         (document.getElementById("sunburstChart"));
                     sb.onClick(function(data) {
                         that.sbCurrentData = data;
+                        addCurViewNumSeq();
                         sb.focusOnNode(data);
                     });
                     //setupSvgDownload();
@@ -918,11 +936,18 @@ App.prototype.addSunburstFeature = function() {
         return str.replace(/[^a-z0-9]/gi, "_");
     };
 
+    var getIdType = function() {
+        return $("input[name='sunburstIdType']:checked").val();
+    };
+
     $("#sunburstDlIds").click(function() {
-        var ids = getIdsFromTree(that.sbCurrentData);
+        var idType = getIdType();
+        var ids = getIdsFromTree(that.sbCurrentData, idType);
         var fname = that.network.Id + "_";
         if (that.alignmentScore)
             fname += "AS" + that.alignmentScore + "_";
+        if (idType != "uniref")
+            fname += idType + "_";
         fname += fixNodeName(that.sbCurrentData.node) + ".txt";
         var text = ids.join("\r\n");
         $("#sbDownloadLink").attr("download", fname);
@@ -933,9 +958,10 @@ App.prototype.addSunburstFeature = function() {
         $("#sunburstDownloadModal").modal();
     });
     $("#sunburstDlFasta").click(function() {
+        var idType = getIdType();
         var progress = new Progress($("#downloadProgressLoader"));
         progress.start();
-        var ids = getIdsFromTree(that.sbCurrentData);
+        var ids = getIdsFromTree(that.sbCurrentData, idType);
         var form = $('<form method="POST" action="getfasta.php"></form>');
         var fc = $('<input name="c" type="hidden">').val(that.network.Id);
         form.append(fc);
@@ -949,6 +975,8 @@ App.prototype.addSunburstFeature = function() {
             var fas = $('<input name="as" type="hidden">').val(that.alignmentScore);
             form.append(fas);
         }
+        var fidtype = $('<input name="it" type="hidden">').val(idType);
+        form.append(fidtype);
         $("body").append(form);
         $("#sbDownloadBtn").hide();
         $("#sunburstDownloadModal h5").show();
@@ -974,13 +1002,15 @@ App.prototype.addSunburstFeature = function() {
 }
 
 
-function getIdsFromTree(data) {
+function getIdsFromTree(data, idType) {
     var nextLevel = function(level) {
         var ids = [];
         // Bottom level
         if (typeof level.sequences !== "undefined") {
             for (var i = 0; i < level.sequences.length; i++) {
-                ids.push(level.sequences[i].seqAcc);
+                var id = idType == "uniref50" ? level.sequences[i].sa50 : (idType == "uniref90" ? level.sequences[i].sa90 : level.sequences[i].seqAcc);
+                //ids.push(level.sequences[i].seqAcc);
+                ids.push(id);
             }
         } else {
             for (var i = 0; i < level.children.length; i++) {
@@ -994,6 +1024,7 @@ function getIdsFromTree(data) {
     };
 
     var ids = nextLevel(data);
+    ids = Array.from(new Set(ids));
     return ids;
 }
 
@@ -1069,4 +1100,7 @@ const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds))
 }
 
+function commify(num) {
+    return parseInt(num).toLocaleString();
+}
 
