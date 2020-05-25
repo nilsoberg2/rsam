@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <title></title>
     <link rel="stylesheet" href="css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous" />
-    <link href="css/custom.css?v=11" rel="stylesheet" />
+    <link href="css/custom.css?v=13" rel="stylesheet" />
     <link href="css/font/css/all.css" rel="stylesheet" />
 </head>
 <body>
@@ -79,7 +79,70 @@
 -->
             <div id="altSsn" style="display: none">
                 <h3 class="explore-heading">Additional Alignment Score Segregations</h3>
-                <p>This cluster has also been segregated with alternative alignment scores.</p>
+                <div id="altSsnPrimary" style="display: none">
+                    <p>
+                    This page displays the SSN of <span class="alt-cluster-id">Megacluster</span>
+                    generated with an alignment score of 11 that collects all of the sequences into a single cluster.
+                    Links are provided to Color SSNs generated with increasing alignments scores
+                    (<span class="alt-cluster-ascores"></span>).
+                    As the alignment score increases, <span class="alt-cluster-id">Megacluster</span>
+                    segregates into an 
+                    increasing number of smaller clusters.   In some of these clusters, "fine structure" is 
+                    revealed that shows the emergence of subclusters.  The connected subclusters may have 
+                    similar functions.  As the alignment score is increased, the subclusters emerge as distinct 
+                    clusters that may be isofunctional.  
+                    </p>
+    
+                    <p>
+                    On the Search page, the "Find by UniProt ID" and "Find by Sequence" functions can be used to 
+                    identify the clusters in the Color SSNs containing an ID/sequence of interest.  Analyses of 
+                    these clusters may allow the identification of isofunctional clusters (large alignment 
+                    score) and their relationships to other isofunctional clusters (connected subclusters at 
+                    smaller alignment scores).  The UniRef50 ID/FASTA files for the clusters can be used with 
+                    EFI-GNT to view the genome neighborhood diagrams (GNDs) of clusters, providing information 
+                    about functional heterogeneity.
+                    </p>
+                </div>
+                <div id="altSsnSecondary" style="display: none">
+                    <p>
+                    The SSN image was generated with the Color SSN function of the "Cluster Analysis" utility.  
+                    The clusters are numbered and assigned a unique color in order of decreasing number of 
+                    UniProt IDs.  The Color SSNs generated with increasing alignment scores are colored 
+                    independently, so clusters in different Color SSNs with the same color need not be related.
+                    </p>
+
+                    <p>
+                    The tabs provide several types of information generated with the "Cluster Analysis" utility:  
+                    </p>
+
+                    <p>
+                    The <span class="link-dl">DATA FILE DOWNLOAD</span> tab provides the Color SSN along with folders with lists of IDs and 
+                    FASTA sequences for all clusters in the SSN.   
+                    </p>
+
+                    <p>
+                    The <span class="link-dl">WEBLOGOS</span> tab provides the WebLogo and MSA for each cluster with &ge;3 nodes (UniRef50 IDs).  
+                    </p>
+
+                    <p>
+                    The <span class="link-dl">CONSENSUS CYS RESIDUES</span> tab provides the positions of conserved Cys residues for each 
+                    cluster with &ge;3 nodes (UniRef50 IDs).  
+                    </p>
+
+                    <p>
+                    The <span class="link-dl">HMMS</span> tab provides the HMM for each cluster with &ge;3 nodes (UniRef50 IDs).  
+                    </p>
+
+                    <p>
+                    The <span class="link-dl">LENGTH HISTOGRAMS</span> tab provides length histograms for the UniProt and UniRef50 IDs for 
+                    each cluster with &ge;3 nodes (UniRef50 IDs).  
+                    </p>
+
+                    <p>
+                    The cluster numbers in the tabs are links to the Explore page for the cluster that provides 
+                    information/downloads for the cluster.
+                    </p>
+                </div>
             </div>
             <div id="childTabs" style="display: none">
                 <ul class="nav nav-tabs nav-intro-tabs" id="childTabsHdr" role="tablist">
@@ -187,7 +250,7 @@
     <!--<script src="data/data.js?v=15"></script>-->
     <script src="js/network.js?v=8"></script>
     <script src="js/progress.js?v=2"></script>
-    <script src="js/app.js?v=28"></script>
+    <script src="js/app.js?v=30"></script>
     <script src="js/imageMapResizer.min.js"></script>
     <script src="js/jquery.maphilight.min.js"></script>
     <script src="js/jquery.lazy.min.js" type="text/javascript"></script>

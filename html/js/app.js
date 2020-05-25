@@ -98,8 +98,12 @@ App.prototype.init = function(network) {
             this.initTabPages();
             dlDivId = "childDownload";
             hideTabStuff = true;
+            $("#altSsnSecondary").show();
         } else {
             $("#downloadContainer").show();
+            $("#altSsnPrimary").show();
+            $(".alt-cluster-ascores").text(this.network.getAltSsns().join(", "));
+            $(".alt-cluster-id").text(this.network.getName());
         }
         this.addDownloadFeatures(dlDivId, hideTabStuff);
     } else {
@@ -164,12 +168,24 @@ App.prototype.initTabPages = function() {
     //TODO: var consDiv = $("<div></div>");
 
     var getDownloadFn = function(type, networkId, altText = "") {
-        var download = $('<span class="download-btn">' + altText + '</span>');
+        var download = $('<span class="download-btn link-dl">' + altText + '</span>');
         download.append('<i class="fas fa-download" data-toggle="tooltip" title="Download ' + altText + '"></i>');
         download.click(function (e) { e.preventDefault(); window.location.href = that.getDownloadUrl(type, networkId); });
         var downloadDiv = $('<div class="float-right"></div>');
         downloadDiv.append(download);
         return downloadDiv;
+    };
+    var getSsnFn = function(networkId) {
+        var clusterParms = 'id=' + networkId;
+        if (that.alignmentScore)
+            clusterParms += '&as=' + that.alignmentScore;
+        if (that.version)
+            clusterParms += '&v=' + that.version;
+        var div = $('<div class="float-right"></div>');
+        var link = $('<a class="link-dl" href="explore.html?' + clusterParms + '"></a>');
+        link.append('<span class="download-btn mr-4" data-toggle="tooltip" title="View Cluster Page">CLUSTER <img src="img/cytossn.png"></span>');
+        div.append(link);
+        return div;
     };
 
     var getSizeDivFn = function(size) {
@@ -182,6 +198,7 @@ App.prototype.initTabPages = function() {
         //TESTING/DEBUGGING:
         //var img = $('<img src="data/length_histogram.png" alt="Length histogram for ' + that.network.Id + '" class="display-img-width">');
         div.append(getDownloadFn("hist", networkId, "PNG "));
+        div.append(getSsnFn(networkId));
         var img = $('<div><img src="' + dataDir + '/length_histogram_sm.png" alt="Length histogram for ' + networkName + '" class="display-img-width lazy"></div>');
         div.append(img);
         div.append(getDownloadFn("hist_ur50", networkId, "PNG "));
@@ -198,6 +215,7 @@ App.prototype.initTabPages = function() {
         div.append(getSizeDivFn(size));
         div.append(getDownloadFn("weblogo", networkId, "PNG "));
         div.append(getDownloadFn("msa", networkId, "MSA ").addClass("mr-4"));
+        div.append(getSsnFn(networkId));
         div.append(img);
         return div;
     };
@@ -214,7 +232,8 @@ App.prototype.initTabPages = function() {
         if (that.version)
             logoParms += '&v=' + that.version;
         var logoDiv = $('<div class="float-right"></div>');
-        logoDiv.append('<span class="download-btn mr-4 hmm-logo" data-logo="' + logoParms + '">Skylign <i class="fas fa-eye" data-toggle="tooltip" title="View HMM in SkyLign"></i></span>');
+        logoDiv.append('<span class="download-btn mr-4 hmm-logo link-dl" data-logo="' + logoParms + '">Skylign <i class="fas fa-eye" data-toggle="tooltip" title="View HMM in SkyLign"></i></span>');
+        logoDiv.append(getSsnFn(networkId));
         div.append(logoDiv);
         div.append(img);
         return div;
@@ -267,7 +286,6 @@ App.prototype.initTabPages = function() {
         //var kidSize = {uniprot: 0, uniref50: 0, uniref90: 0};
         var kidSizeRaw = kids[i].size;
         var kidSize = {uniprot: commify(kidSizeRaw.uniprot), uniref90: commify(kidSizeRaw.uniref90), uniref50: commify(kidSizeRaw.uniref50)};
-        console.log(kidSize);
         var dataDir = this.dataDir + "/" + kidId;
         var netName = "Mega" + kidId;
         var hist = mkHistoFn(dataDir, kidId, kidSize, netName);
@@ -530,7 +548,8 @@ App.prototype.setClusterImage = function (onFinishFn) {
         else
             img
                 .attr("src", this.dataDir + "/" + fileName + "_sm.png")
-                .on("load", function () { that.addClusterHotspots(img); that.progress.stop(); onFinishFn(); });
+                .on("load", function () { that.addClusterHotspots(img); that.progress.stop(); onFinishFn(); })
+                .on("error", function () { that.progress.stop(); });
         $("#downloadClusterImage").click(function (e) {
             e.preventDefault();
             window.location.href = that.getDownloadUrl("net");

@@ -110,39 +110,95 @@ if ($type == "seq") {
     $file = settings::get_cluster_db_path($version);
     $db = new SQLite3($file);
 
-    $query = $db->escapeString($query);
-    $sql = "SELECT cluster_id, species FROM taxonomy WHERE $field LIKE '%$query%' ORDER BY cluster_id";
+    $search_fn = function($results, $has_ascore, $excludes = array()) {
+        $count = array();
+        $clusters = array();
+        $diced_parents = array();
+        while ($row = $results->fetchArray()) {
+            $cid = $row["cluster_id"] . ($has_ascore ? "-AS" . $row["ascore"] : "");
+            if ($has_ascore) {
+                $parent = implode("-", array_slice(explode("-", $row["cluster_id"]), 0, 3));
+                $diced_parents[$parent] = 1;
+            }
+            if (isset($excludes[$cid]))
+                continue;
+            if (!isset($count[$cid])) {
+                $count[$cid] = 0;
+                array_push($clusters, $cid);
+            }
+            $count[$cid]++;
+        }
+    
+        usort($clusters, function($a, $b) {
+            $ap = explode("-", $a);
+            $bp = explode("-", $b);
+            $maxidx = count($ap) < count($bp) ? count($ap) : count($bp);
+            for ($i = 1; $i < $maxidx; $i++) {
+                $ai = preg_replace("/[^0-9]/", "", $ap[$i]);
+                $bi = preg_replace("/[^0-9]/", "", $bp[$i]);
+                if ($ai != $bi)
+                    return $ai - $bi;
+            }
+            return 0;
+    
+        });
+
+        return array($count, $clusters, $diced_parents);
+    };
+
+
+    $sql = "SELECT cluster_id, ascore, species FROM taxonomy INNER JOIN diced_id_mapping ON taxonomy.uniprot_id = diced_id_mapping.uniprot_id WHERE $field LIKE '%$query%' ORDER BY cluster_id, ascore";
     $results = $db->query($sql);
 
-    $count = array();
-    $clusters = array();
-    while ($row = $results->fetchArray()) {
-        if (!isset($count[$row["cluster_id"]])) {
-            $count[$row["cluster_id"]] = 0;
-            array_push($clusters, $row["cluster_id"]);
-        }
-        $count[$row["cluster_id"]]++;
-    }
+    list($diced_count, $diced_clusters, $diced_parents) = $search_fn($results, true);
 
-    usort($clusters, function($a, $b) {
-        $ap = explode("-", $a);
-        $bp = explode("-", $b);
-        $maxidx = count($ap) < count($bp) ? count($ap) : count($bp);
-        for ($i = 1; $i < $maxidx; $i++) {
-            $ai = preg_replace("/[^0-9]/", "", $ap[$i]);
-            $bi = preg_replace("/[^0-9]/", "", $bp[$i]);
-            if ($ai != $bi)
-                return $ai - $bi;
-        }
-        return 0;
-    });
+    $query = $db->escapeString($query);
+    $sql = "SELECT cluster_id, species FROM taxonomy INNER JOIN id_mapping ON taxonomy.uniprot_id = id_mapping.uniprot_id WHERE $field LIKE '%$query%' ORDER BY cluster_id";
+    $results = $db->query($sql);
+
+    list($count, $clusters) = $search_fn($results, false, $diced_parents);
+
+//    $count = array();
+//    $clusters = array();
+//    while ($row = $results->fetchArray()) {
+//        if (!isset($count[$row["cluster_id"]])) {
+//            $count[$row["cluster_id"]] = 0;
+//            array_push($clusters, $row["cluster_id"]);
+//        }
+//        $count[$row["cluster_id"]]++;
+//    }
+//
+//    usort($clusters, function($a, $b) {
+//        $ap = explode("-", $a);
+//        $bp = explode("-", $b);
+//        $maxidx = count($ap) < count($bp) ? count($ap) : count($bp);
+//        for ($i = 1; $i < $maxidx; $i++) {
+//            $ai = preg_replace("/[^0-9]/", "", $ap[$i]);
+//            $bi = preg_replace("/[^0-9]/", "", $bp[$i]);
+//            if ($ai != $bi)
+//                return $ai - $bi;
+//        }
+//        return 0;
+//    });
 
     $matches = array();
     for ($i = 0; $i < count($clusters); $i++) {
         array_push($matches, array($clusters[$i], $count[$clusters[$i]]));
     }
 
-    print json_encode(array("status" => true, "matches" => $matches));
+    $diced_matches = array();
+    for ($i = 0; $i < count($diced_clusters); $i++) {
+        $ascore_match = array();
+        $ascore = "";
+        $cluster = $diced_clusters[$i];
+        if (preg_match("/^(.+)-AS(\d+)$/", $cluster, $ascore_match)) {
+            $cluster = $ascore_match[1];
+            $ascore = $ascore_match[2];
+        }
+        array_push($diced_matches, array($cluster, $ascore, $diced_count[$diced_clusters[$i]]));
+    }
+
+    print json_encode(array("status" => true, "matches" => $matches, "diced_matches" => $diced_matches));
 } else if ($type == "tax-prefetch") {
     //$field = $type == "genus" ? "genus" : ($type == "family" ? "family" : "species");
     $field = "species";

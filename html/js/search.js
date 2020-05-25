@@ -145,34 +145,52 @@ $(document).ready(function() {
         var termVal = $("#searchTaxTerm").val();
         var termType = getSearchTaxType();
         var version = getVersion();
+        var progress = new Progress($("#progressLoader"));
+        progress.start();
         $.post(searchApp, {t: "tax", query: termVal, type: termType, v: version}, function(dataStr) {
             var data = JSON.parse(dataStr);
             if (data.status !== true) {
                 $("#searchTaxTermErrorMsg").text(data.message).show();
             } else {
-                var processFn = function(network) {
-                    var table = $('<table class="table table-sm"></table>');
-    		        table.append('<thead><tr><th>Cluster</th><th>Number of Hits</th></thead>');
+                var processFn = function(network, matches, isDiced = false) {
+                    var table = $('<table class="table table-sm w-50"></table>');
+                    if (isDiced)
+        		        table.append('<thead><tr><th>Cluster</th><th>Alignment Score</th><th>Number of Hits</th></thead>');
+                    else
+        		        table.append('<thead><tr><th>Cluster</th><th>Number of Hits</th></thead>');
     		        var body = $('<tbody>');
             		table.append(body);
-                    for (var i = 0; i < data.matches.length; i++) {
-                        var netName = typeof network !== 'undefined' ? network.getNetworkMapName(data.matches[i][0]) : data.matches[i][0];
-                        if (netName)
-                            body.append('<tr><td><a href="explore.html?v=' + version + '&id=' + data.matches[i][0] + '">' + netName + '</a></td><td>' + data.matches[i][1] + '</td></tr>');
+                    for (var i = 0; i < matches.length; i++) {
+                        var netName = typeof network !== 'undefined' ? network.getNetworkMapName(matches[i][0]) : matches[i][0];
+                        var ascoreParm = isDiced ? "&as=" + matches[i][1] : "";
+                        if (netName) {
+                            var tr = $('<tr>');
+                            tr.append($('<td><a href="explore.html?v=' + version + '&id=' + matches[i][0] + ascoreParm + '">' + netName + '</a></td>'));
+                            if (isDiced)
+                                tr.append($('<td>' + matches[i][1] + '</td>'));
+                            tr.append($('<td>' + matches[i][isDiced ? 2 : 1] + '</td>'));
+                            body.append(tr);
+                        }
                     }
-                    $("#searchResults").empty().append(table).show();
+                    if (!isDiced)
+                        $("#searchResults").empty();
+                    $("#searchResults").append(table).show();
                     $("#searchUi").hide();
                 };
 
                 $.get("getdata.php", {a: "netinfo", v: version}, function (netDataStr) {
-                    var data = parseNetworkJson(netDataStr);
+                    var netData = parseNetworkJson(netDataStr);
                     var network;
-                    if (data !== false) {
-                        if (data.valid) {
-                            network = new Network("", data);
+                    if (netData !== false) {
+                        if (netData.valid) {
+                            network = new Network("", netData);
                         }
                     }
-                    processFn(network);
+                    processFn(network, data.matches);
+                    if (typeof data.diced_matches !== "undefined" && data.diced_matches.length > 0) {
+                        processFn(network, data.diced_matches, true);
+                    }
+                    progress.stop();
                 });
             }
         });
