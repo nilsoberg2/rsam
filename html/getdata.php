@@ -86,6 +86,7 @@ function get_cluster($db, $cluster_id, $ascore, $version) {
             "uniref50" => 0,
         ),
         "alignment_score" => "",
+        "default_alignment_score" => "",
         "name" => "",
         "desc" => "",
         "image" => "",
@@ -143,6 +144,7 @@ function get_cluster($db, $cluster_id, $ascore, $version) {
     $data["dir"] = functions::get_rel_data_dir_path($parent_cluster_id, $version, $ascore, $child_cluster_id);
     if ($ascore)
         $data["alignment_score"] = $ascore;
+    $data["default_alignment_score"] = get_default_alignment_score($db, $cluster_id);
 //    $data["dir"] = settings::get_data_dir($version) . "/$cluster_id";
 //    if ($ascore) {
 //        $full_dir = functions::get_data_dir_path($cluster_id, $version, $ascore);
@@ -480,6 +482,19 @@ function get_alt_ssns($db, $cluster_id) {
         return array($row[ASCORE_COL]);
     };
     return get_generic_fetch($db, $cluster_id, $sql, $row_fn);
+}
+function get_default_alignment_score($db, $cluster_id) {
+    //TODO:
+    //HACK:
+    //LEGENDARYHACK:
+    //WORSTHACKIVEEVERMADE:
+    // Fix this by storing the default AS in the db...
+    if ($cluster_id == "cluster-1-1")
+        return "11";
+    elseif ($cluster_id == "cluster-2-1")
+        return "15";
+    else
+        return "";
 }
 
 function get_sizes($db, $id, $ascore = "", $is_child = false) {

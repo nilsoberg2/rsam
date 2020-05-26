@@ -30,6 +30,11 @@ Network.prototype.getAlignmentScore = function() {
     //this.data.alignment_score = "22";
     return typeof this.data.alignment_score !== "undefined" ? this.data.alignment_score : "";
 }
+Network.prototype.getDefaultAlignmentScore = function() {
+    //DEBUG:
+    //this.data.default_alignment_score = "11";
+    return typeof this.data.default_alignment_score !== "undefined" ? this.data.default_alignment_score : "";
+}
 Network.prototype.getPageTitle = function() {
     return typeof this.data.title !== "undefined" ? this.data.title : "Title";
 }

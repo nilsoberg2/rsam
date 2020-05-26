@@ -198,6 +198,23 @@ if ($type == "seq") {
         array_push($diced_matches, array($cluster, $ascore, $diced_count[$diced_clusters[$i]]));
     }
 
+    usort($diced_matches, function($a, $b) {
+        $ap = explode("-", $a[0]);
+        $bp = explode("-", $b[0]);
+        $aa = implode("-", array_slice($ap, 0, 2));
+        $bb = implode("-", array_slice($bp, 0, 2));
+        $cmp = strcmp($aa, $bb);
+        if (!$cmp) { // same
+            $cmp = $a[1] - $b[1];
+            if (!$cmp) // same
+                return $ap[3] - $bp[3];
+            else
+                return $cmp;
+        } else {
+            return $cmp;
+        }
+    });
+
     print json_encode(array("status" => true, "matches" => $matches, "diced_matches" => $diced_matches));
 } else if ($type == "tax-prefetch") {
     //$field = $type == "genus" ? "genus" : ($type == "family" ? "family" : "species");

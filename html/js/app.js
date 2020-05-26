@@ -104,6 +104,7 @@ App.prototype.init = function(network) {
             $("#altSsnPrimary").show();
             $(".alt-cluster-ascores").text(this.network.getAltSsns().join(", "));
             $(".alt-cluster-id").text(this.network.getName());
+            $(".alt-cluster-default-as").text(network.getDefaultAlignmentScore());
         }
         this.addDownloadFeatures(dlDivId, hideTabStuff);
     } else {
@@ -134,6 +135,8 @@ App.prototype.initAltSsn = function() {
     this.setClusterImage(function() {});
     var altDiv = $("#altSsn");
     this.addAltSsns(altDiv);
+    $("#submitAnnoLink").attr("href", $("#submitAnnoLink").attr("href") + "?id=" + this.network.Id);
+        $("#dataAvailable").show();
 }
 App.prototype.initStandard = function(isLeaf) {
     var that = this;
@@ -183,7 +186,7 @@ App.prototype.initTabPages = function() {
             clusterParms += '&v=' + that.version;
         var div = $('<div class="float-right"></div>');
         var link = $('<a class="link-dl" href="explore.html?' + clusterParms + '"></a>');
-        link.append('<span class="download-btn mr-4" data-toggle="tooltip" title="View Cluster Page">CLUSTER <img src="img/cytossn.png"></span>');
+        link.append('<span class="download-btn mr-4" data-toggle="tooltip" title="View Cluster Page">Cluster <img src="img/cytossn.png"></span>');
         div.append(link);
         return div;
     };
@@ -233,8 +236,8 @@ App.prototype.initTabPages = function() {
             logoParms += '&v=' + that.version;
         var logoDiv = $('<div class="float-right"></div>');
         logoDiv.append('<span class="download-btn mr-4 hmm-logo link-dl" data-logo="' + logoParms + '">Skylign <i class="fas fa-eye" data-toggle="tooltip" title="View HMM in SkyLign"></i></span>');
-        logoDiv.append(getSsnFn(networkId));
         div.append(logoDiv);
+        div.append(getSsnFn(networkId));
         div.append(img);
         return div;
     };
@@ -888,7 +891,7 @@ App.prototype.addSunburstFeature = function() {
 
     var addCurViewNumSeq = function() {
         var numUniProt = commify(that.sbCurrentData.numSequences);
-        var idStr = numUniProt > 1 ? "IDs" : "ID";
+        var idStr = that.sbCurrentData.numSequences > 1 ? "IDs" : "ID";
         $("#sunburstIdNums").text(numUniProt + " UniProt " + idStr + " visible");
     };
 

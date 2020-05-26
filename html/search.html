@@ -48,9 +48,25 @@
             <div>
                 <h3>Find by UniProt ID</h3>
                 <p>
-                    Input a UniProt ID to identify the associated cluster within the 
-                    radical SAM superfamily.
+                Input a UniProt ID to identify its cluster.
                 </p>
+                <p>
+                For all but megacluster-1-1 (subgroup-17, SPASM/Twitch domain) and megacluster-2-1 (subgroup 5, 
+                B12-binding domain), the search identifies the cluster that contains the user-specified UniProt 
+                ID.  The cluster is a link to the <a href="explore.html">Explore</a> page that provides information for the cluster, 
+                including WebLogos, MSAs, HMMs, and files containing IDs and FASTA sequences. 
+                </p>
+                <p>
+                For megacluster-1-1 and megacluster-2-1, the search identifies the cluster (if &ge;3 
+                nodes/UniRef50 IDs) in each Color SSN that contains the ID.
+                <!--If the sequence does not match a 
+                cluster HMMs, the ID is identified as a member of Megacluster-1-1 or Megacluster-2-1.-->
+                </p>
+                <p>
+                In the generation of the megaclusters and clusters, some UniProt IDs for a singleton may be 
+                deleted.  The Search will report:  "ID not found".
+                </p>
+
                 <div id="searchIdErrorMsg" style="display: none" class="m-1 p-2 mb-3 rounded alert-warning search-error"></div>
                 <div class="form-group">
                     <input class="form-control w-25" type="text" name="searchId" id="searchId" />
@@ -61,11 +77,30 @@
             <div>
                 <h3>Find by Sequence</h3>
                 <p>
-                    Input a sequence to find a related cluster within the
-                    radical SAM superfamily.  The cluster that most closely matches the input sequence
-                    will be returned, allowing the user to access the associated data, including ID list,
-                    HMM, WebLogo, and other files.  The search is done with hmmscan from the HMMER package,
-                    against a database of HMMs collected from the clusters in the radical SAM superfamily.
+                Input a sequence to find clusters that contain homologues. The sequence is used to query the 
+                HMMs for the clusters (using hmmscan) and provides a list of matching clusters. 
+                </p>
+                <p>
+                The first section reports matches for (mega)clusters except megacluster-1-1 and megacluster-2-1 
+                if the e-value is &le;1e-10.   The next section reports matches  for clusters in the Color SSNs 
+                for megacluster-1-1 and megacluster-2-1 that contain ≥3 UniRef50 IDs/nodes; for each Color SSN; 
+                the clusters with the seven smallest e-values are listed.   The user should identify the 
+                cluster with smallest e-value.  The user should be critical/careful in concluding a cluster is 
+                matched if the e-value is "large"; matches within isofunctional clusters likely will have an 
+                e-value &le;1e-100. 
+                </p>
+                <p>
+                For megacluster-1-1 (subgroup-17, SPASM/Twitch domain) and megacluster-2-1 (subgroup 5, 
+                B12-binding domain), as the alignment score used to generate the Color SSNs increases, the 
+                e-value for the most significant match may decrease significantly as sequence heterogeneity in 
+                the cluster is decreased. The cluster with the largest alignment score and smallest e-value may 
+                be isofunctional; as the alignment score decreases, the cluster containing homologues with 
+                similar functions may be identified. The WebLogos (and MSAs) provide additional information 
+                about sequence heterogeneity. 
+                </p>
+                <p>
+                Each cluster is a link to an <a href="explore.html">Explore</a> page that provide the information for the cluster, 
+                including WebLogos, MSAs, HMMs, and files containing IDs and FASTA sequences. 
                 </p>
                 <div id="searchSeqErrorMsg" style="display: none" class="m-1 p-2 mb-3 rounded alert-warning search-error"></div>
                 <div class="form-group">
@@ -77,6 +112,15 @@
             <div>
                 <h3>Find by Taxonomy</h3>
                 <p>
+                Input the genus/species/strain for an organism. 
+                </p>
+                <p>
+                If only the genus is entered, a pop-up list of matching genus-species-strains is provided for 
+                selection of the desired genus/species/strain. If the genus and species are entered, a pop-up 
+                list of matching genus-species-strains is provided for selection of the desired 
+                genus/species/strain. The search provides a list of clusters containing proteins from the 
+                organism.  Each cluster is a link to the <a href="explore.html">Explore</a> page that provides information for the 
+                cluster, including WebLogos, MSAs, HMMs, and files containing IDs and FASTA sequences.
                 </p>
                 <div id="searchTaxTermErrorMsg" style="display: none" class="m-1 p-2 mb-3 rounded alert-warning search-error"></div>
                 <div class="form-group" style="display: none">
